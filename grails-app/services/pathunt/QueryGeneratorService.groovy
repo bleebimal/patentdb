@@ -11,19 +11,19 @@ class QueryGeneratorService {
     }
 
     def parseQuery() {
-        println "prefixQuery = $prefixQuery"
+//        println "prefixQuery = $prefixQuery"
         int spaceIndex = prefixQuery.indexOf(" ")
-        println "spaceIndex = $spaceIndex"
+//        println "spaceIndex = $spaceIndex"
         int len = prefixQuery.length()
         if (spaceIndex == -1 && len > 0) {
-            println " EMPTY -----------"
+//            println " EMPTY -----------"
             spaceIndex = len
         }
-        println "prefixQuery.length = " + len
+//        println "prefixQuery.length = " + len
         if (len > 0){
             String firstQueryPart = prefixQuery.substring(0, spaceIndex)
             prefixQuery = prefixQuery.substring(spaceIndex + 1, len)
-            println "firstQueryPart = $firstQueryPart"
+//            println "firstQueryPart = $firstQueryPart"
 
             switch (firstQueryPart){
                 case "AND":
@@ -58,37 +58,55 @@ class QueryGeneratorService {
 
         valueField = valueField.replace("(","'%")
         valueField = valueField.replace(")","%'")
-        println "operand = $operand"
-        println "queryField = $queryField"
-        println "valueField = $valueField"
+        valueField = valueField.replace("_"," ")
+
+//        println "operand = $operand"
+//        println "queryField = $queryField"
+//        println "valueField = $valueField"
 
         switch (queryField){
             case "TA":
                 return "TITLE LIKE " + valueField + " OR " + "ABSTRACT LIKE " + valueField
-            case "PBD":
-                valueField = generateDate(valueField)
-                valueField = valueField.replace("%","")
-                valueField = valueField.replace("_"," ")
-                valueField = valueField.replace(" TO ","' AND '")
 
-                return "DATE BETWEEN " + valueField
+            case "PBD":
+                valueField = valueField.replace("%","")
+                valueField = generateDate(valueField)
+//                println "valueField = $valueField"
+                if (valueField.length() > 12){
+                    valueField = valueField.replace(" TO ","' AND '")
+
+                    return "DATE BETWEEN " + valueField
+                }
+                else {
+                    return "DATE = " + valueField
+                }
         }
     }
 
     def generateDate(String dateField){
-        int indexOfT = dateField.indexOf("T")
-        
-        String date1 = dateField.substring((indexOfT - 9), (indexOfT - 1))
-        String date2 = dateField.substring((indexOfT + 3), (indexOfT + 11))
-        
-        String newDate1 = date1.substring(0,4) + "-" + date1.substring(4,6) + "-" +
-                          date1.substring(6,8)
-        String newDate2 = date2.substring(0,4) + "-" + date2.substring(4,6) + "-" +
-                          date2.substring(6,8)
-        
-        dateField = dateField.replace(date1,newDate1)
-        dateField = dateField.replace(date2,newDate2)
-        
+        if (dateField.length() > 10){
+
+            int indexOfT = dateField.indexOf("T")
+
+            String date1 = dateField.substring((indexOfT - 9), (indexOfT - 1))
+            String date2 = dateField.substring((indexOfT + 3), (indexOfT + 11))
+
+            String newDate1 = date1.substring(0,4) + "-" + date1.substring(4,6) + "-" +
+                    date1.substring(6,8)
+            String newDate2 = date2.substring(0,4) + "-" + date2.substring(4,6) + "-" +
+                    date2.substring(6,8)
+
+            dateField = dateField.replace(date1,newDate1)
+            dateField = dateField.replace(date2,newDate2)
+        }
+        else {
+            String date = dateField.substring(1,9)
+            String newDate = date.substring(0,4) + "-" + date.substring(4,6) + "-" +
+                    date.substring(6,8)
+
+            dateField = dateField.replace(date,newDate)
+        }
+
         return dateField
     }
 }

@@ -92,11 +92,13 @@ class HomeService {
         else {
             int index = len
             char charValue = queryPhrase.charAt(index)
-            while (charValue != '[' && charValue != ' ') {
-                // println "charValue = $charValue"
-                // println ""
+            while (charValue != '[' && charValue != ' ' && index >= 0) {
+//                 println "charValue = $charValue"
+//                 println ""
                 queryValue = queryPhrase.charAt(index--).toString() + queryValue
-                charValue = queryPhrase.charAt(index)
+                if (index >= 0){
+                    charValue = queryPhrase.charAt(index)
+                }
             }
         }
         return queryValue.trim()
