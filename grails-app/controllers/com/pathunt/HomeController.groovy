@@ -25,7 +25,10 @@ class HomeController {
     def parser(){
 //        homeService.parseQuery(params.query)
 //        println "parser"
-        String prefix = homeService.prefixConverter(params.query)
+        String preQuery = "[" + homeService.translate(params.query) + "]"
+        println "preQuery = $preQuery"
+        println "gfdhgfjhghfgdgflkygyktf"
+        String prefix = homeService.prefixConverter(preQuery)
         queryGeneratorService.setPrefixQuery(prefix)
         sqlQuery += "SELECT * FROM patent WHERE " + queryGeneratorService.parseQuery()
         println sqlQuery
