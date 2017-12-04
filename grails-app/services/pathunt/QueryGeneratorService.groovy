@@ -66,7 +66,7 @@ class QueryGeneratorService {
 
         switch (queryField){
             case "TA":
-                return "TITLE LIKE " + valueField + " OR " + "ABSTRACT LIKE " + valueField
+                return "p.TITLE LIKE " + valueField + " OR " + "p.ABSTRACT LIKE " + valueField
 
             case "PBD":
                 valueField = valueField.replace("%","")
@@ -75,10 +75,10 @@ class QueryGeneratorService {
                 if (valueField.length() > 12){
                     valueField = valueField.replace(" TO ","' AND '")
 
-                    return "DATE BETWEEN " + valueField
+                    return "p.DATE BETWEEN " + valueField
                 }
                 else {
-                    return "DATE = " + valueField
+                    return "p.DATE = " + valueField
                 }
         }
     }
