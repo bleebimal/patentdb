@@ -7,11 +7,14 @@ import grails.plugin.springsecurity.annotation.Secured
 class HomeController {
     def springSecurityService
     def homeService
+    def sqlQuery = ""
+    def queryGeneratorService
     def index() {
         if(springSecurityService.isLoggedIn()) {
             if(SpringSecurityUtils.ifAllGranted('ROLE_ADMIN')) {
                 def currentUser = springSecurityService.getCurrentUser()
-                render view: 'index', model: [currentUser:currentUser]
+                render view: 'index', model: [currentUser:currentUser, sqlQuery:sqlQuery]
+                sqlQuery = ""
             }
         }
         else {
@@ -21,8 +24,11 @@ class HomeController {
 
     def parser(){
 //        homeService.parseQuery(params.query)
-        println "parser"
-        homeService.prefixConverter(params.query)
-
+//        println "parser"
+        String prefix = homeService.prefixConverter(params.query)
+        queryGeneratorService.setPrefixQuery(prefix)
+        sqlQuery += "SELECT * FROM patent WHERE " + queryGeneratorService.parseQuery()
+        println sqlQuery
+        redirect(action: 'index')
     }
 }
