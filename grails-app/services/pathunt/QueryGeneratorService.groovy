@@ -274,11 +274,11 @@ class QueryGeneratorService {
 
             case "CITEDBY_COUNT3":
                 valueField = valueField.replace("%","")
-                return "p.citedby3 = " + valueField
+                return "p.citation3 = " + valueField
 
             case "CITEDBY_COUNT5":
                 valueField = valueField.replace("%","")
-                return "p.citedby5 = " + valueField
+                return "p.citation5 = " + valueField
 
             case "CAN":
                 /*if (!assignee){

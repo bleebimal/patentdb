@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils
 
 @Transactional
 class HomeService {
-    //[TA:((virus OR viral) AND (separation OR clearance))] AND [IPC:(20170205)] AND [AN:(halala)]
+    //[TA:((virus OR viral) AND (separation OR clearance))] AND [IPC:(H01L41/00)] AND [AN:(halala)]
     //[[TA:(virus) OR TA:(viral)] AND [TA:(separation) OR TA:(clearance)]]
     //[[[TA:(virus) OR TA:(viral)] AND [TA:(separation) OR TA:(clearance)]] AND [PBD:(19170101_TO_20170202)]]
 

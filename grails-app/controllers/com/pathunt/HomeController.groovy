@@ -13,7 +13,7 @@ class HomeController {
     def joinInventor = "INNER JOIN inventor ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
     def joinAssignee = "INNER JOIN assignee a ON p.country = a.patent_country AND p.id = a.patent_id "
     def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
-    def joinIPC = "INNER JOIN inventor ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
+    def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
     def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
     def joinApplication = "INNER JOIN application ap ON p.country = ap.patent_country AND p.id = ap.patent_id "
     def joinCitation = "INNER JOIN citation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
@@ -35,8 +35,10 @@ class HomeController {
                     response.setHeader("Content-disposition", "attachment; filename=output.${params.extension}")
                     println "size of lists" + lists.size()
 
-                    List fields = ["patent_number", "title", "abs", "year", "date"]
-                    Map labels = ["patent_number": "Publication Number", "title": "Title", "abs":"Abstract", "year":"Publication Year", "date":"Publication Date"]
+                    List fields = ["patent_number", "title", "abs", "year", "date", "first_claim", "inventor", "assignees", "ipc", "upc", "cpc", "citation3"]
+                    Map labels = ["patent_number": "Publication Number", "title": "Title",
+                                  "abs":"Abstract", "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim", "inventor":"Inventor(s)", "assigness":"Assignee(s)",
+                                   "ipc":"IPC(s)", "upc":"UPC(s)", "cpc":"CPC(s)", "citaion3":"Citation (3 Years)"]
 //                    def upperCase = { value ->
 //                        return value.toUpperCase()
 //                    }
@@ -95,46 +97,48 @@ class HomeController {
                 "INNER JOIN application ap ON p.country = ap.patent_country AND p.id = ap.patent_id " +
                 "INNER JOIN citation ct ON p.country = ct.patent_country AND p.id = ct.patent_id " +
                 "WHERE "*/
-        query += "SELECT p.patent_number as 'publication_number', " +
-                 "p.title, p.abstract, year(p.date) as year, p.date " +
-//                 "p.inventors as 'Inventor(s)', " +
-//                 "p.assignees as 'Assignee(s)'," +
-//                 "p.upcs as 'All_UPC', " + "p.ipcs as 'All_IPC', " +
-//                 "p.citation3 as 'cited_by_within_3_years' " +
-                "FROM patentdemo p "
-
+        query += "SELECT concat(p.country,p.id) as 'publication_number', " +
+                 "p.title, p.abstract, year(p.date) as year, p.date, " +
+                 "p.first_claim,"+
+                 "p.inventors," +
+                 "p.assignees," +
+                 "p.upc, " + "p.ipc, " + "p.cpc, " +
+                 "p.citation3 " +
+                "FROM patentfinal p "
+        println "query " + query
         def whereQuery = "WHERE " + queryGeneratorService.parseQuery()
         def tableList = queryGeneratorService.tables
 
         for (String table in tableList) {
             if (table == "inventor") {
                 query += joinInventor
-                println query
+//                println query
             } else if (table == "assignee") {
                 query += joinAssignee
-                println query
+//                println query
             } else if (table == "upc") {
                 query += joinUPC
-                println query
+//                println query
             } else if (table == "ipc") {
                 query += joinIPC
-                println query
+//                println query
             } else if (table == "cpc") {
                 query += joinCPC
-                println query
+//                println query
             } else if (table == "application") {
                 query += joinApplication
-                println query
+//                println query
             } else if (table == "citation") {
                 query += joinCitation
-                println query
+//                println query
             }
         }
         queryGeneratorService.reset()
         query += whereQuery
-        println query
+        println "query " + query
         def sql = new Sql(dataSource)
         data = sql.rows(query)
+        println "data size " + data.size()
         data.each {
             Patentdemo patentdemo = new Patentdemo()
             patentdemo.patent_number = it.publication_number
@@ -142,6 +146,14 @@ class HomeController {
             patentdemo.abs = it.abstract
             patentdemo.year = it.year
             patentdemo.date = it.date
+            patentdemo.first_claim = it.first_claim
+            patentdemo.assignee = it.assignees
+            patentdemo.inventor = it.inventors
+            patentdemo.ipc = it.ipc
+            patentdemo.upc = it.upc
+            patentdemo.cpc = it.cpc
+            patentdemo.citation3 = it.citation3
+
             lists.add(patentdemo)
         }
 /*//        println data
