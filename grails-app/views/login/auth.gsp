@@ -23,12 +23,19 @@
     body{
         color:#fff;
     }
+
+    h1{
+        color:black;
+        text-align:center;
+
+    }
     .loginBox{
         position: relative;
         top:200px;
     }
     .background{
-        background-image: url("https://wallpaper.wiki/wp-content/uploads/2017/04/wallpaper.wiki-Rainning-wallpaper-hd-background-PIC-WPD0013375.jpg");
+        /*background-image: url("https://wallpaper.wiki/wp-content/uploads/2017/04/wallpaper.wiki-Rainning-wallpaper-hd-background-PIC-WPD0013375.jpg"); */
+        background-color: #F5F5F5;
         background-size: cover;
         height:100%;
     }
@@ -39,6 +46,7 @@
 </head>
 
 <body class="background">
+<h1>PATHUNT</h1>
 <div class="container">
     <div class="row loginBox">
         <div class="col-md-2"> </div>
