@@ -21,11 +21,11 @@
     <asset:link rel="icon" href="deerwalk.png" type="image/png"/>
     <style>
     body{
-        color:#fff;
+        color:#060d13;
     }
 
     h1{
-        color:black;
+        color:#060d13;
         text-align:center;
 
     }
@@ -33,9 +33,12 @@
         position: relative;
         top:200px;
     }
+    .innerLoginBox{
+        background-color: #74AFAD;
+    }
     .background{
         /*background-image: url("https://wallpaper.wiki/wp-content/uploads/2017/04/wallpaper.wiki-Rainning-wallpaper-hd-background-PIC-WPD0013375.jpg"); */
-        background-color: #F5F5F5;
+        background-color: #558C89;
         background-size: cover;
         height:100%;
     }
@@ -50,7 +53,7 @@
 <div class="container">
     <div class="row loginBox">
         <div class="col-md-2"> </div>
-        <div class="col-md-8">
+        <div class="col-md-8 innerLoginBox">
             <form action="${postUrl}" method="POST" autocomplete="off">
                 <p class="h5 text-center mb-4">Login</p>
                 <div class="md-form">
