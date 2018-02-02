@@ -53,14 +53,18 @@
 				<export:formats formats="['csv']" />
 			</g:if>
 		</div>
-		<div class="col-md-4"></div>
-		<div class="col-md-4"></div>
+	</div>
+    <div class="row">
+		<div class="col-md-4" style="color: #B22222;">
+            <g:message code="${flash.message}" args="${flash.args}"
+                       default="${flash.default}"/>
+		</div>
 	</div>
 </div>
 <div class="container-fluid">
 	<div class="form-group basic-textarea rounded-corners shadow-textarea">
 		<g:form controller="home" action="parser">
-			<g:textArea class="form-control z-depth-1 textAreaHeight" name="query" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
+			<g:textArea class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
 			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm" value="Run" style="font-size: 18px;"/>
 		</g:form>

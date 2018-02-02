@@ -9,6 +9,7 @@ class HomeController {
     def springSecurityService
     def homeService
     def queryGeneratorService
+    def input = ""
     def query = ""
     def joinInventor = "INNER JOIN inventor ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
     def joinAssignee = "INNER JOIN assignee a ON p.country = a.patent_country AND p.id = a.patent_id "
@@ -27,9 +28,9 @@ class HomeController {
     def index() {
         if(springSecurityService.isLoggedIn()) {
             if(SpringSecurityUtils.ifAllGranted('ROLE_ADMIN')) {
+
                 if(params?.extension == "csv"){
                     if(!params.max) params.max = 10
-
 
                     response.contentType = grailsApplication.config.grails.mime.types[params.extension]
                     response.setHeader("Content-disposition", "attachment; filename=output.${params.extension}")
@@ -50,10 +51,10 @@ class HomeController {
                 }
                 else {
                     def currentUser = springSecurityService.getCurrentUser()
-                    render view: 'index', model: [currentUser:currentUser, sqlQuery:query, data:data]
+                    render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data]
                 }
-
             }
+
         }
         else {
             redirect(controller: 'login', action: 'auth')
@@ -74,7 +75,8 @@ class HomeController {
     def parser(){
 //        homeService.parseQuery(params.query)
 //        println "parser"
-        String preQuery = "[" + homeService.translate(params.query) + "]"
+        input = params.query
+        String preQuery = "[" + homeService.translate(input) + "]"
         println "preQuery = $preQuery"
         String prefix = homeService.prefixConverter(preQuery)
         queryGeneratorService.setPrefixQuery(prefix)
@@ -102,52 +104,67 @@ class HomeController {
 //                 "p.upcs as 'All_UPC', " + "p.ipcs as 'All_IPC', " +
 //                 "p.citation3 as 'cited_by_within_3_years' " +
                 "FROM patentdemo p "
+        def whereClause = queryGeneratorService.parseQuery()
+        println "whereClause = $whereClause"
+        if (whereClause.contains("ERROR")){
+            def message = whereClause.split(":")
+            println "message = " + message[1]
+            flash.message = "query.invalid.message"
+            flash.args = [message[1]]
+            flash.default = "invalid query"
+            queryGeneratorService.reset()
+        }
+        else {
+            def whereQuery = "WHERE " + whereClause
+            def tableList = queryGeneratorService.tables
 
-        def whereQuery = "WHERE " + queryGeneratorService.parseQuery()
-        def tableList = queryGeneratorService.tables
-
-        for (String table in tableList) {
-            if (table == "inventor") {
-                query += joinInventor
-                println query
-            } else if (table == "assignee") {
-                query += joinAssignee
-                println query
-            } else if (table == "upc") {
-                query += joinUPC
-                println query
-            } else if (table == "ipc") {
-                query += joinIPC
-                println query
-            } else if (table == "cpc") {
-                query += joinCPC
-                println query
-            } else if (table == "application") {
-                query += joinApplication
-                println query
-            } else if (table == "citation") {
-                query += joinCitation
-                println query
+            for (String table in tableList) {
+                if (table == "inventor") {
+                    query += joinInventor
+                    println query
+                } else if (table == "assignee") {
+                    query += joinAssignee
+                    println query
+                } else if (table == "upc") {
+                    query += joinUPC
+                    println query
+                } else if (table == "ipc") {
+                    query += joinIPC
+                    println query
+                } else if (table == "cpc") {
+                    query += joinCPC
+                    println query
+                } else if (table == "application") {
+                    query += joinApplication
+                    println query
+                } else if (table == "citation") {
+                    query += joinCitation
+                    println query
+                }
             }
-        }
-        queryGeneratorService.reset()
-        query += whereQuery
-        println query
-        def sql = new Sql(dataSource)
-        data = sql.rows(query)
-        data.each {
-            Patentdemo patentdemo = new Patentdemo()
-            patentdemo.patent_number = it.publication_number
-            patentdemo.title = it.title
-            patentdemo.abs = it.abstract
-            patentdemo.year = it.year
-            patentdemo.date = it.date
-            lists.add(patentdemo)
-        }
+            queryGeneratorService.reset()
+            query += whereQuery
+            println query
+            def sql = new Sql(dataSource)
+            data = sql.rows(query)
+            if (data.size() == 0){
+                flash.message = "result.empty.message"
+                flash.default = "empty result"
+            }
+            data.each {
+                Patentdemo patentdemo = new Patentdemo()
+                patentdemo.patent_number = it.publication_number
+                patentdemo.title = it.title
+                patentdemo.abs = it.abstract
+                patentdemo.year = it.year
+                patentdemo.date = it.date
+                lists.add(patentdemo)
+            }
 /*//        println data
 //        lists.clear()
 
         println "lists.size() = $lists.size"*/
+        }
         redirect(action: 'index')
     }
 }

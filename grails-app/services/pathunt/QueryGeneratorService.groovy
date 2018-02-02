@@ -5,6 +5,7 @@ import grails.transaction.Transactional
 @Transactional
 class QueryGeneratorService {
     String prefixQuery = ""
+    String firstQueryPart = ""
     boolean inventor = false
     boolean assignee = false
     boolean ipc = false
@@ -13,6 +14,7 @@ class QueryGeneratorService {
     boolean application = false
     boolean citation = false
     boolean claim = false
+    boolean error = false
     ArrayList<String> tables = new ArrayList<String>()
 
     def setPrefixQuery(String prefixQuery){
@@ -20,44 +22,51 @@ class QueryGeneratorService {
     }
 
     def parseQuery() {
-//        println "prefixQuery = $prefixQuery"
-        int spaceIndex = prefixQuery.indexOf(" ")
+        println "error = $error"
+        if (! error){
+            //        println "prefixQuery = $prefixQuery"
+            int spaceIndex = prefixQuery.indexOf(" ")
 //        println "spaceIndex = $spaceIndex"
-        int len = prefixQuery.length()
-        if (spaceIndex == -1 && len > 0) {
+            int len = prefixQuery.length()
+            if (spaceIndex == -1 && len > 0) {
 //            println " EMPTY -----------"
-            spaceIndex = len
-        }
+                spaceIndex = len
+            }
 //        println "prefixQuery.length = " + len
-        if (len > 0){
-            String firstQueryPart = prefixQuery.substring(0, spaceIndex)
-            prefixQuery = prefixQuery.substring(spaceIndex + 1, len)
+            if (len > 0){
+                firstQueryPart = prefixQuery.substring(0, spaceIndex)
+                prefixQuery = prefixQuery.substring(spaceIndex + 1, len)
 //            println "firstQueryPart = $firstQueryPart"
 
-            switch (firstQueryPart){
-                case "AND":
-                    String condition1 = parseQuery()
-                    String condition2 = parseQuery()
+                switch (firstQueryPart){
+                    case "AND":
+                        String condition1 = parseQuery()
+                        String condition2 = parseQuery()
 //                println "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
-                    return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
+                        return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
 
-                case "OR":
-                    String condition1 = parseQuery()
-                    String condition2 = parseQuery()
+                    case "OR":
+                        String condition1 = parseQuery()
+                        String condition2 = parseQuery()
 //                println "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
-                    return "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
+                        return "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
 
-                case "NOT":
-                    String condition1 = parseQuery()
-                    String condition2 = parseQuery().replace("LIKE","NOT LIKE")
-                    condition2 = parseQuery().replace("=","<>")
-                    condition2 = condition2.replace("BETWEEN","NOT BETWEEN")
+                    case "NOT":
+                        String condition1 = parseQuery()
+                        String condition2 = parseQuery().replace("LIKE","NOT LIKE")
+                        condition2 = parseQuery().replace("=","<>")
+                        condition2 = condition2.replace("BETWEEN","NOT BETWEEN")
 //                println "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
-                    return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
+                        return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
 
-                default:
-                    return generateWhereCondition(firstQueryPart)
+                    default:
+                        return generateWhereCondition(firstQueryPart)
+                }
             }
+        }
+        else {
+            println "Error:$firstQueryPart"
+            return "ERROR:" + firstQueryPart
         }
     }
 
@@ -289,6 +298,10 @@ class QueryGeneratorService {
                 }
                 return "coalesce(a.organization,nullif(concat(" +
                         "a.name_first, ' ', a.name_last), ' ')) LIKE " + valueField
+
+            default:
+                error = true
+                return "ERROR:$firstQueryPart"
         }
     }
 
@@ -329,5 +342,6 @@ class QueryGeneratorService {
         citation = false
         claim = false
         tables.clear()
+        error = false
     }
 }
