@@ -149,6 +149,10 @@ class QueryGeneratorService {
             case "TA":
                 return "p.title LIKE " + valueField + " OR " + "p.abstract LIKE " + valueField
 
+            case "TAC":
+                return "p.title LIKE " + valueField + " OR " + "p.abstract LIKE " + valueField+ " OR " +
+                        "p.first_claim LIKE " + valueField
+
             case "ISD":
                 valueField = valueField.replace("%","")
                 valueField = generateDate(valueField)
