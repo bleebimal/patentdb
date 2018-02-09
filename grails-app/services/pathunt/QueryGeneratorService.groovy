@@ -127,7 +127,7 @@ class QueryGeneratorService {
                     tables.add("cpc")
                 }
                 valueField = valueField.replace("%","")
-                return "c.subgroup_id = " + valueField
+                return "c.category = " + valueField
 
             case "AN":
                 /*if (!assignee){
