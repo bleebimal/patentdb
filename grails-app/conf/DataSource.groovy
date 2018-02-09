@@ -16,20 +16,20 @@ environments {
     development {
         dataSource {
             dbCreate = "" // one of 'create', 'create-drop', 'update', 'validate', ''
-            url = "jdbc:mysql://192.168.0.4/pathuntcurrent"
+            url = "jdbc:mysql://localhost/pathuntcurrent"
 //            url = "jdbc:mysql://localhost/pathuntcurrent"
         }
     }
     test {
         dataSource {
             dbCreate = ""
-            url = "jdbc:mysql://192.168.0.4/pathuntcurrent"
+            url = "jdbc:mysql://localhost/pathuntcurrent"
         }
     }
     production {
         dataSource {
             dbCreate = ""
-            url = "jdbc:mysql://192.168.0.4/pathuntcurrent"
+            url = "jdbc:mysql://localhost/pathuntcurrent"
             properties {
                maxActive = -1
                minEvictableIdleTimeMillis=1800000
