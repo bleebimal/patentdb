@@ -22,42 +22,44 @@ class QueryGeneratorService {
     }
 
     def parseQuery() {
-        println "error = $error"
+        //println "error = $error"
         if (! error){
-            //        println "prefixQuery = $prefixQuery"
+                    //println "prefixQuery = $prefixQuery"
             int spaceIndex = prefixQuery.indexOf(" ")
-//        println "spaceIndex = $spaceIndex"
+        //println "spaceIndex = $spaceIndex"
             int len = prefixQuery.length()
             if (spaceIndex == -1 && len > 0) {
-//            println " EMPTY -----------"
+            //println " EMPTY -----------"
                 spaceIndex = len
             }
-//        println "prefixQuery.length = " + len
+        //println "prefixQuery.length = " + len
             if (len > 0){
                 firstQueryPart = prefixQuery.substring(0, spaceIndex)
-                prefixQuery = prefixQuery.substring(spaceIndex + 1, len)
-//            println "firstQueryPart = $firstQueryPart"
+                if (spaceIndex != len){
+                    prefixQuery = prefixQuery.substring(spaceIndex + 1, len)
+                }
+            //println "firstQueryPart = $firstQueryPart"
 
                 switch (firstQueryPart){
                     case "AND":
                         String condition1 = parseQuery()
                         String condition2 = parseQuery()
-//                println "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
+                //println "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
                         return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
 
                     case "OR":
                         String condition1 = parseQuery()
                         String condition2 = parseQuery()
-//                println "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
+                //println "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
                         return "(" + condition1 + ")" + " OR " + "(" + condition2 + ")"
 
                     case "NOT":
                         String condition1 = parseQuery()
-                        String condition2 = parseQuery().replace("LIKE","NOT LIKE")
-                        condition2 = parseQuery().replace("=","<>")
-                        condition2 = condition2.replace("BETWEEN","NOT BETWEEN")
-//                println "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
-                        return "(" + condition1 + ")" + " AND " + "(" + condition2 + ")"
+                        String con = parseQuery().replace("LIKE","NOT LIKE")
+                                .replace("=","<>")
+                                .replace("BETWEEN","NOT BETWEEN")
+                        //println "(" + condition1 + ")" + " AND " + "(" + con + ")"
+                        return "(" + condition1 + ")" + " AND " + "(" + con + ")"
 
                     default:
                         return generateWhereCondition(firstQueryPart)
@@ -65,7 +67,7 @@ class QueryGeneratorService {
             }
         }
         else {
-            println "Error:$firstQueryPart"
+            //println "Error:$firstQueryPart"
             return "ERROR:" + firstQueryPart
         }
     }
@@ -77,13 +79,14 @@ class QueryGeneratorService {
         String queryField = fields[0]
         String valueField = fields[1]
 
-        valueField = valueField.replace("(","'%")
-        valueField = valueField.replace(")","%'")
-        valueField = valueField.replace("_"," ")
+        valueField = valueField.replace("'","\\'")
+                .replace("~","'%")
+                .replace("|","%'")
+                .replace("^"," ")
 
-        println "operand = $operand"
-        println "queryField = $queryField"
-        println "valueField = $valueField"
+        //println "operand = $operand"
+        //println "queryField = $queryField"
+        //println "valueField = $valueField"
 
         switch (queryField){
             case "TTL":
@@ -101,7 +104,7 @@ class QueryGeneratorService {
                 }*/
                 if (!tables.contains("ipc")){
                     tables.add("ipc")
-                    println "size of table: " + tables.size()
+                    //println "size of table: " + tables.size()
                 }
                 valueField = valueField.replace("%","")
                 return "concat(i.section, i.ipc_class, " +
@@ -124,7 +127,7 @@ class QueryGeneratorService {
                     tables.add("cpc")
                 }
                 valueField = valueField.replace("%","")
-                return "c.subclass_id = " + valueField
+                return "c.subgroup_id = " + valueField
 
             case "AN":
                 /*if (!assignee){
@@ -132,7 +135,7 @@ class QueryGeneratorService {
                 }*/
                 if (!tables.contains("assignee")){
                     tables.add("assignee")
-                    println "size of table: " + tables.size()
+                    //println "size of table: " + tables.size()
                 }
                 return "coalesce(a.organization,nullif(concat(" +
                         "a.name_first, ' ', a.name_last), ' ')) LIKE " + valueField
@@ -156,7 +159,7 @@ class QueryGeneratorService {
             case "ISD":
                 valueField = valueField.replace("%","")
                 valueField = generateDate(valueField)
-//                println "valueField = $valueField"
+//                //println "valueField = $valueField"
                 if (valueField.length() > 12){
                     valueField = valueField.replace(" TO ","' AND '")
 
@@ -169,7 +172,7 @@ class QueryGeneratorService {
             case "PBD":
                 valueField = valueField.replace("%","")
                 valueField = generateDate(valueField)
-//                println "valueField = $valueField"
+//                //println "valueField = $valueField"
                 if (valueField.length() > 12){
                     valueField = valueField.replace(" TO ","' AND '")
 
@@ -202,7 +205,7 @@ class QueryGeneratorService {
                 }
                 valueField = valueField.replace("%","")
                 valueField = generateDate(valueField)
-//                println "valueField = $valueField"
+//                //println "valueField = $valueField"
                 if (valueField.length() > 12){
                     valueField = valueField.replace(" TO ","' AND '")
 

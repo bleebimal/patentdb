@@ -14,8 +14,9 @@
 	<asset:stylesheet src="mdb.min.css"/>
 	<asset:stylesheet src="style.css"/>
 	<asset:stylesheet src="export.css"/>
-	<asset:javascript src="bootstrap.min.js"/>
 	<asset:javascript src="jquery-3.2.1.min.js"/>
+	<asset:javascript src="balanced-min.js"/>
+	<asset:javascript src="bootstrap.min.js"/>
 	<asset:javascript src="popper.min.js"/>
 	<asset:javascript src="mdb.min.js"/>
 	<asset:link rel="icon" href="deerwalk.png" type="image/png"/>

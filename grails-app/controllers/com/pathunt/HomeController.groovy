@@ -48,6 +48,7 @@ class HomeController {
 
                     exportService.export(params?.extension, response.outputStream,lists, fields, labels, [:],[:])
                     query = ""
+                    input = ""
                     data = []
                     lists.clear()
                 }
@@ -77,9 +78,9 @@ class HomeController {
 //        homeService.parseQuery(params.query)
 //        println "parser"
         input = params.query
-        String preQuery = "[" + homeService.translate(input) + "]"
-        println "preQuery = $preQuery"
-        String prefix = homeService.prefixConverter(preQuery)
+//        println input
+        String prefix = homeService.translate(input)
+//        println "preQuery = $prefix"
         queryGeneratorService.setPrefixQuery(prefix)
         query = ""
         data = []
@@ -107,17 +108,17 @@ class HomeController {
                  "p.citation3 " +
                 "FROM patentfinal p "
         def whereClause = queryGeneratorService.parseQuery()
-        println "whereClause = $whereClause"
+//        println "whereClause = $whereClause"
         if (whereClause.contains("ERROR")){
             def message = whereClause.split(":")
-            println "message = " + message[1]
+            println "Error message = " + message[1]
             flash.message = "query.invalid.message"
             flash.args = [message[1]]
             flash.default = "invalid query"
             queryGeneratorService.reset()
         }
         else {
-            def whereQuery = "WHERE " + queryGeneratorService.parseQuery()
+            def whereQuery = "WHERE " + whereClause
             def tableList = queryGeneratorService.tables
 
             for (String table in tableList) {

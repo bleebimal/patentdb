@@ -14,6 +14,23 @@
 		height:300px;
 	}
 	</style>
+	<script type="application/javascript">
+        function update() {
+            $input = $('#input').val();
+            console.log($input);
+            try {
+                balanced.matches({source: $input, open: ['{', '(', '['], close: ['}', ')', ']'], balance: true, exceptions: true});
+                return true;
+            } catch (error) {
+                $errors = error.message;
+                $errors = $errors.split(":");
+                console.log($errors);
+                $errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
+                $output = $('#errorMessage').text($errorMessage || '');
+				return false;
+            }
+        }
+	</script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark">
@@ -55,7 +72,7 @@
 		</div>
 	</div>
     <div class="row">
-		<div class="col-md-4" style="color: #B22222;">
+		<div class="col-md-6" style="color: #B22222;" id="errorMessage">
             <g:message code="${flash.message}" args="${flash.args}"
                        default="${flash.default}"/>
 		</div>
@@ -63,9 +80,10 @@
 </div>
 <div class="container-fluid">
 	<div class="form-group basic-textarea rounded-corners shadow-textarea">
-		<g:form controller="home" action="parser">
-			<g:textArea class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
+		<g:form controller="home" action="parser" onsubmit="return update()">
+			<g:textArea id="input" class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
+			%{--<input type="reset" onclick="clear()" name="clear" class="btn btn-teal accent-1 btn-sm" value="Clear" style="font-size: 18px;"/>--}%
 			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm" value="Run" style="font-size: 18px;"/>
 		</g:form>
 	</div>
