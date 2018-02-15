@@ -11,8 +11,8 @@ class HomeController {
     def queryGeneratorService
     def input = ""
     def query = ""
-    def joinInventor = "INNER JOIN inventor ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
-    def joinAssignee = "INNER JOIN assignee a ON p.country = a.patent_country AND p.id = a.patent_id "
+    def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
+    def joinAssignee = "INNER JOIN assigneefinal a ON p.country = a.patent_country AND p.id = a.patent_id "
     def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
     def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
     def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
