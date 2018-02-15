@@ -13,8 +13,15 @@ class HomeService {
     private List<String> operandExpressions = new ArrayList<>();
 
     def translate(String custQuery) {
+//        println "custQuery = $custQuery"
+        custQuery = custQuery.replace("( ","(")
+//                             .replace("(  ","(")
+//                             .replace("(   ","(")
+                             .replace(" )",")")
+//                             .replace("  )",")")
+//                             .replace("   )",")")
+//        println "custQuery = $custQuery"
         processBrackets(custQuery);
-
 //        StringBuilder val = new StringBuilder();
 //        for (String st: operandExpressions){
 //            println("st = " + st)
@@ -359,7 +366,7 @@ class HomeService {
             else if(c == '('){
                 bracesStack.push("(");
                 if (!operatorStack.isEmpty()){
-                    while (operatorStack.peek() != ")"){
+                    while ((!operatorStack.isEmpty()) && (operatorStack.peek() != ")")){
                         prefix.insert(0, (operatorStack.pop()) + " ");
                     }
                     operatorStack.pop();

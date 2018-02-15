@@ -15,9 +15,14 @@
 	}
 	</style>
 	<script type="application/javascript">
+
+		function beforeSubmit() {
+			update();
+			removeMultSpace();
+        }
         function update() {
             $input = $('#input').val();
-            console.log($input);
+//            console.log($input);
             try {
                 balanced.matches({source: $input, open: ['{', '(', '['], close: ['}', ')', ']'], balance: true, exceptions: true});
                 return true;
@@ -29,6 +34,13 @@
                 $output = $('#errorMessage').text($errorMessage || '');
 				return false;
             }
+        }
+        function removeMultSpace() {
+            $str = $('#input').val();
+//            console.log('first: '+ $str);
+            $str = $str.replace(/ {2,}/g,' ');
+            $('#input').val($str);
+//            console.log('second: '+ $str);
         }
 	</script>
 </head>
@@ -80,14 +92,13 @@
 </div>
 <div class="container-fluid">
 	<div class="form-group basic-textarea rounded-corners shadow-textarea">
-		<g:form controller="home" action="parser" onsubmit="return update()">
+		<g:form controller="home" action="parser" onsubmit="return beforeSubmit();">
 			<g:textArea id="input" class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
 			%{--<input type="reset" onclick="clear()" name="clear" class="btn btn-teal accent-1 btn-sm" value="Clear" style="font-size: 18px;"/>--}%
 			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm" value="Run" style="font-size: 18px;"/>
 		</g:form>
 	</div>
-
 </div>
 
 %{--${data.size()}
