@@ -15,9 +15,11 @@ class HomeService {
     def translate(String custQuery) {
 //        println "custQuery = $custQuery"
         custQuery = custQuery.replace("( ","(")
+                             .replace("[ ","[")
 //                             .replace("(  ","(")
 //                             .replace("(   ","(")
                              .replace(" )",")")
+                             .replace(" ]","]")
 //                             .replace("  )",")")
 //                             .replace("   )",")")
 //        println "custQuery = $custQuery"
