@@ -17,7 +17,7 @@ class HomeController {
     def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
     def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
     def joinApplication = "INNER JOIN application ap ON p.country = ap.patent_country AND p.id = ap.patent_id "
-    def joinCitation = "INNER JOIN citation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
+    def joinCitation = "INNER JOIN uspatentcitation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
     def joinLocation = "INNER JOIN location l ON p.country = l.patent_country AND p.id = l.patent_id "
     def data = []
     def dataSource
@@ -147,10 +147,10 @@ class HomeController {
             }
             queryGeneratorService.reset()
             query += whereQuery
-            println "query " + query
+//            println "query " + query
             def sql = new Sql(dataSource)
             data = sql.rows(query)
-            println "data size " + data.size()
+//            println "data size " + data.size()
             if (data.size() == 0){
                 flash.message = "result.empty.message"
                 flash.default = "empty result"
