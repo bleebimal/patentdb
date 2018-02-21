@@ -79,7 +79,7 @@ class QueryGeneratorService {
         String queryField = fields[0]
         String valueField = fields[1]
 
-        valueField = valueField.replace("'","\\'")
+        valueField = valueField.replace("'","")
                 .replace("~","'%")
                 .replace("|","%'")
                 .replace("^"," ")
@@ -106,9 +106,9 @@ class QueryGeneratorService {
                     tables.add("ipc")
                     //println "size of table: " + tables.size()
                 }
-                valueField = valueField.replace("%","")
+                valueField = valueField.replace("'%","'")
                 return "concat(i.section, i.ipc_class, " +
-                        "i.subclass, i.main_group, '/', i.subgroup) = " + valueField
+                        "i.subclass, i.main_group, '/', i.subgroup) LIKE " + valueField
             case "UPC":
                 /*if (!upc){
                     upc = true
@@ -116,8 +116,8 @@ class QueryGeneratorService {
                 if (!tables.contains("upc")){
                     tables.add("upc")
                 }
-                valueField = valueField.replace("%","")
-                return "u.subclass_id = " + valueField
+                valueField = valueField.replace("'%","'")
+                return "u.subclass_id LIKE " + valueField
 
             case "CPC":
                 /*if (!cpc){
@@ -126,8 +126,9 @@ class QueryGeneratorService {
                 if (!tables.contains("cpc")){
                     tables.add("cpc")
                 }
-                valueField = valueField.replace("%","")
-                return "c.category = " + valueField
+                valueField = valueField.replace("'%","'")
+                //valueField = valueField.replace("%","")
+                return "c.category LIKE " + valueField
 
             case "AN":
                 /*if (!assignee){
@@ -237,9 +238,9 @@ class QueryGeneratorService {
                 if (!tables.contains("ipc")){
                     tables.add("ipc")
                 }
-                valueField = valueField.replace("%","")
+                valueField = valueField.replace("'%","'")
                 return "concat(i.section, i.ipc_class, " +
-                        "i.subclass, i.main_group, '/', i.subgroup) = " + valueField + "AND i.sequence = 0"
+                        "i.subclass, i.main_group, '/', i.subgroup) LIKE " + valueField + "AND i.sequence = 0"
 
             case "MUPC":
                 /*if (!upc){
@@ -248,8 +249,8 @@ class QueryGeneratorService {
                 if (!tables.contains("upc")){
                     tables.add("upc")
                 }
-                valueField = valueField.replace("%","")
-                return "u.subclass_id = " + valueField + "AND u.sequence = 0"
+                valueField = valueField.replace("'%","'")
+                return "u.subclass_id LIKE " + valueField + "AND u.sequence = 0"
 
             case "REF":
                 /*if (!citation){
