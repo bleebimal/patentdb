@@ -42,8 +42,8 @@
         background-size: cover;
         height:100%;
     }
-    .loginBox{
-
+    .login_message{
+        color:#B22222;
     }
     </style>
 </head>
@@ -54,6 +54,9 @@
     <div class="row loginBox">
         <div class="col-md-2"> </div>
         <div class="col-md-8 innerLoginBox">
+            <g:if test='${flash.message}'>
+                <div class='login_message'>${flash.message}</div>
+            </g:if>
             <form action="${postUrl}" method="POST" autocomplete="off">
                 <p class="h5 text-center mb-4">Login</p>
                 <div class="md-form">

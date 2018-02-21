@@ -1,6 +1,6 @@
 package com.pathunt
 
-class Patentdemo {
+class Patent {
     String patent_number
     String title
     String abs
