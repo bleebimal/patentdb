@@ -10,8 +10,47 @@
 	.shadow-textarea textarea.form-control {
 		padding-left: 0.8rem;
 	}
-	.textAreaHeight{
-		height:300px;
+	.textAreaHeight {
+        height: 300px;
+    }
+
+    .dropbtn {
+        background-color: #ffffff;
+        color: #0056b3;
+        padding: 16px;
+        font-size: 16px;
+        border: none;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 8px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {background-color: #ddd}
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        background-color: #9e9e9e;
 	}
 	</style>
 	<script type="application/javascript">
@@ -76,18 +115,20 @@
 
 			</li>
 		</ul>
-		<ul class="nav navbar-nav navbar-right">
+
 			<div class="dropdown" style="float:right;">
-				<div class="dropdown-content">
-					<span class="navbar-text white-text">
-						<g:link onclick="changePassword();return false;">Change Password</g:link>
-					</span>
-					<span class="navbar-text white-text">
-						<g:link controller="logout" action="index">Logout</g:link>
-					</span>
-				</div>
-			</div>
-		</ul>
+				<button class="dropbtn">Options <asset:image src="icon.png"/></button>
+
+				    <div class="dropdown-content">
+					    <span class="navbar-text white-text">
+                            <a> <g:link onclick="changePassword();return false;">Change Password</g:link> </a>
+					    </span>
+					    <span class="navbar-text white-text">
+						    <g:link controller="logout" action="index">Logout</g:link>
+					    </span>
+				    </div>
+            </div>
+
 
 	</div>
 </nav>
