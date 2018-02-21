@@ -23,7 +23,9 @@ class HomeController {
     def dataSource
     def exportService
     def grailsApplication
+    def currentUser = ""
 
+    //session.getAttribute(key) and session.setAttribute(key, value)
     ArrayList<Patentdemo> lists = new ArrayList<Patentdemo>()
     def index() {
         if(springSecurityService.isLoggedIn()) {
@@ -36,9 +38,9 @@ class HomeController {
                     response.setHeader("Content-disposition", "attachment; filename=output.${params.extension}")
                     println "size of lists" + lists.size()
 
-                    List fields = ["patent_number", "title", "abs", "year", "date", "first_claim", "inventor", "assignees", "ipc", "upc", "cpc", "citation3"]
+                    List fields = ["patent_number", "title", "abs", "year", "date", "first_claim", "inventor", "assignee", "ipc", "upc", "cpc", "citation3"]
                     Map labels = ["patent_number": "Publication Number", "title": "Title",
-                                  "abs":"Abstract", "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim", "inventor":"Inventor(s)", "assigness":"Assignee(s)",
+                                  "abs":"Abstract", "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim", "inventor":"Inventor(s)", "assignee":"Assignee(s)",
                                    "ipc":"IPC(s)", "upc":"UPC(s)", "cpc":"CPC(s)", "citaion3":"Citation (3 Years)"]
 //                    def upperCase = { value ->
 //                        return value.toUpperCase()
@@ -47,13 +49,9 @@ class HomeController {
 //                    Map parameters = [title: "Cool books"]
 
                     exportService.export(params?.extension, response.outputStream,lists, fields, labels, [:],[:])
-                    query = ""
-                    input = ""
-                    data = []
-                    lists.clear()
                 }
                 else {
-                    def currentUser = springSecurityService.getCurrentUser()
+                    currentUser = springSecurityService.getCurrentUser()
                     render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data]
                 }
             }
@@ -73,10 +71,17 @@ class HomeController {
 //            redirect(controller: 'login', action: 'auth')
 //        }
 //    }
-
+    def clear(){
+        query = ""
+        input = ""
+        data = []
+        lists.clear()
+        redirect(action: 'index')
+    }
     def parser(){
 //        homeService.parseQuery(params.query)
 //        println "parser"
+        lists.clear()
         input = params.query
 //        println input
         String prefix = homeService.translate(input)
@@ -147,7 +152,7 @@ class HomeController {
             }
             queryGeneratorService.reset()
             query += whereQuery
-//            println "query " + query
+            println "query " + query
             def sql = new Sql(dataSource)
             data = sql.rows(query)
 //            println "data size " + data.size()
@@ -178,5 +183,48 @@ class HomeController {
 
         println "lists.size() = $lists.size"*/
         redirect(action: 'index')
+    }
+
+    def changePassword(){
+        def user = springSecurityService.currentUser
+        def status= validPassword(user,params.currentPassword,params.newPassword,params.repeatPassword)
+
+        if(status.equals('valid')){
+            status= applyUpdatePassword(user,params.newPassword)
+            if (status.equals('error')){
+                flash.message = "password.invalid.message"
+                flash.args = "Unable to change password"
+                flash.default = "Unable to change password."
+            }
+        }else {
+            flash.message = "password.invalid.message"
+            flash.args = status
+            flash.default = "Unable to change password."
+        }
+        redirect( action: "index", model: [currentUser:user])
+    }
+
+    /*This method checks whether the new password that the user wants to change to is valid*/
+    def validPassword(def user, def password, def newPassword, def newPassword2)
+    {
+        if (!springSecurityService.passwordEncoder.isPasswordValid(user.password, password, null /*salt*/)) {
+            return 'Invalid current password'
+        }
+
+        if (springSecurityService.passwordEncoder.isPasswordValid(user.password, newPassword, null /*salt*/)) {
+            return 'New password is same as current password'
+        }
+        return 'valid'
+    }
+
+    /*This method updates the password of the user to the new password*/
+    def applyUpdatePassword(def user, def newPassword){
+        user.password = newPassword
+        if(!user.save(flush: true, failOnError: true)){
+            return 'error'
+        }
+        else {
+            return 'success'
+        }
     }
 }

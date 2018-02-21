@@ -17,8 +17,8 @@
 	<script type="application/javascript">
 
 		function beforeSubmit() {
-			update();
 			removeMultSpace();
+			return update();
         }
         function update() {
             $input = $('#input').val();
@@ -42,6 +42,20 @@
             $('#input').val($str);
 //            console.log('second: '+ $str);
         }
+        function changePassword(){
+            $("#changePassword").modal("show");
+        }
+        function checkMatch(){
+            var npassword1=$("#newPassword").val();
+            var npassword2=$("#repeatPassword").val();
+            console.log(npassword1 + "..." + npassword2);
+            if (npassword1!=npassword2){
+                $("#errorPwd").text("Re-enter the password correctly!");
+                return false;
+            }else{
+                $("#changePwd").submit();
+            }
+        }
 	</script>
 </head>
 <body>
@@ -62,9 +76,19 @@
 
 			</li>
 		</ul>
-		<span class="navbar-text white-text">
-			<g:link controller="logout" action="index">Logout</g:link>
-		</span>
+		<ul class="nav navbar-nav navbar-right">
+			<div class="dropdown" style="float:right;">
+				<div class="dropdown-content">
+					<span class="navbar-text white-text">
+						<g:link onclick="changePassword();return false;">Change Password</g:link>
+					</span>
+					<span class="navbar-text white-text">
+						<g:link controller="logout" action="index">Logout</g:link>
+					</span>
+				</div>
+			</div>
+		</ul>
+
 	</div>
 </nav>
 %{--<g:form controller="home" action="parser">
@@ -95,12 +119,62 @@
 		<g:form controller="home" action="parser" onsubmit="return beforeSubmit();">
 			<g:textArea id="input" class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
-			%{--<input type="reset" onclick="clear()" name="clear" class="btn btn-teal accent-1 btn-sm" value="Clear" style="font-size: 18px;"/>--}%
+			<g:link controller="home" class="btn btn-teal accent-1 btn-sm" action="clear" style="font-size: 18px;"> Clear </g:link>
 			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm" value="Run" style="font-size: 18px;"/>
 		</g:form>
 	</div>
 </div>
 
+<div class="modal fade" id="changePassword" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title text-center">Change Password</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			</div>
+			<div class="modal-body">
+				<g:form url="[controller:'home', action:'changePassword']" id="changePwd">
+					<div class="row">
+						<div class="col-md-12" style="color: #B22222;" id="errorPwd">
+							<g:message code="${flash.message}" args="${flash.args}"
+									   default="${flash.default}"/>
+						</div>
+					</div>
+					<fieldset class="form">
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="form-group">
+									<label for="currentPassword">Current Password</label>
+									<g:passwordField name="currentPassword" class="form-control" required=""/>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="form-group">
+									<label for="newPassword">New Password</label>
+									<g:passwordField name="newPassword" class="form-control" required=""/>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="form-group">
+									<label for="repeatPassword">Re-enter Password</label>
+									<g:passwordField name="repeatPassword" class="form-control" required=""/>
+								</div>
+							</div>
+						</div>
+					</fieldset>
+					<input type="reset" name="clear" class="btn btn-teal accent-1 btn-sm" value="Clear" style="font-size: 18px;"/>
+					<g:actionSubmit class="btn btn-teal accent-1 btn-sm" name="changePwd" onclick="checkMatch();return false;" value="${message(code: 'default.button.changePassword.label', default: 'Change Password')}" style="font-size: 18px;"/>
+				</g:form>
+			</div>
+		</div>
+	</div>
+</div>
 %{--${data.size()}
         <g:if test="${data}">
             <table border="1 px" width="90%">
