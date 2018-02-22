@@ -13,7 +13,6 @@ class HomeController {
     def exportService
     def grailsApplication
 
-    def input = ""
     def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
     def joinAssignee = "INNER JOIN assigneefinal a ON p.country = a.patent_country AND p.id = a.patent_id "
     def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
@@ -23,12 +22,13 @@ class HomeController {
     def joinCitation = "INNER JOIN uspatentcitation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
     def joinLocation = "INNER JOIN location l ON p.country = l.patent_country AND p.id = l.patent_id "
 
-//    Map<String,Query> userInput = new HashMap<>()
-    //session.getAttribute(key) and session.setAttribute(key, value)
-    ArrayList<Patent> lists = new ArrayList<Patent>()
+    def userInput = new HashMap<String,Query>()
+
     def index() {
         if(springSecurityService.isLoggedIn()) {
             if(SpringSecurityUtils.ifAllGranted('ROLE_ADMIN')) {
+                def currentUser = springSecurityService.getCurrentUser()
+                def inputQuery = userInput.get(currentUser)
                 if(params?.extension == "csv"){
                     if(!params.max) params.max = 10
 
@@ -45,18 +45,22 @@ class HomeController {
 //                    Map formatters = [patent_number: upperCase]
 //                    Map parameters = [title: "Cool books"]
 
+                    def lists = inputQuery.result
                     exportService.export(params?.extension, response.outputStream,lists, fields, labels, [:],[:])
                 }
                 else {
-                    def currentUser = springSecurityService.getCurrentUser()
-                    def data = !lists.isEmpty() ? 1 : 0
-
-                    if (input != "" && data == 0){
-                        flash.message = "query.running.message"
-                        flash.args = ["Query is already being executed. Refresh after some time"]
-                    }
-                    else {
-                        flash.clear()
+                    def data = 0
+                    def input = ""
+                    if (inputQuery != null){
+                        data = inputQuery.result != null ? 1 : 0
+                        input = inputQuery.query
+                        if (inputQuery.isActive){
+                            flash.message = "query.running.message"
+                            flash.args = ["Query is already being executed. Refresh after some time"]
+                        }
+                        else {
+                            flash.clear()
+                        }
                     }
                     render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data]
                 }
@@ -78,8 +82,8 @@ class HomeController {
 //        }
 //    }
     def clear(){
-        input = ""
-        lists.clear()
+        def currentUser = springSecurityService.getCurrentUser()
+        userInput.remove(currentUser)
         flash.clear()
         redirect( action: 'index')
     }
@@ -87,14 +91,17 @@ class HomeController {
     def parser(){
             //        homeService.parseQuery(params.query)
 //        println "parser"
-            def user = springSecurityService.getCurrentUser()
-            input = params.query
+        def lists = new ArrayList<Patent>()
+
+        def user = springSecurityService.getCurrentUser()
+        def userQuery = new Query()
+        userQuery.query = params.query
+        userQuery.isActive = true
 //        println input
-            String prefix = homeService.translate(input)
+            String prefix = homeService.translate(userQuery.query)
 //        println "preQuery = $prefix"
             queryGeneratorService.setPrefixQuery(prefix)
 
-            lists.clear()
             /*query += "SELECT concat(p.country,p.number) as 'Publication Number', " +
                     "p.title, p.abstract, p.first_claim, year(p.date), p.date, " +
                     "concat(ir.name_first, ' ', ir.name_last) as 'Inventor(s)', " +
@@ -185,6 +192,9 @@ class HomeController {
                     lists.add(patentdemo)
                 }
             }
+        userQuery.result = lists
+        userQuery.isActive = false
+        userInput.put(user,userQuery)
 /*//        println data
 //        lists.clear()
 
