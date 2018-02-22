@@ -75,7 +75,7 @@ class HomeController {
 
     def parser(){
         def lists = new ArrayList<Patent>()
-
+        def data = []
         def user = springSecurityService.getCurrentUser()
         def userQuery = new Query()
         userQuery.query = params.query
@@ -128,8 +128,19 @@ class HomeController {
             query += whereQuery
             println "query " + query
             def sql = new Sql(dataSource)
-            def data = sql.rows(query)
-            sql.close()
+
+            try {
+                data = sql.rows(query)
+            }catch (OutOfMemoryError e){
+                flash.message = "memory.exceeded.message"
+                flash.args = ["Out of Memory. Query is too vague"]
+                flash.default = "Resultset exceeded memory size."
+                userQuery.isActive = false
+                userInput.put(user,userQuery)
+                redirect( action: 'index')
+            }finally{
+                sql.close()
+            }
             println "data size " + data.size()
             if (data.size() == 0){
                 flash.message = "result.empty.message"
