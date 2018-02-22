@@ -12,6 +12,7 @@ class Patent {
     String ipc
     String upc
     String cpc
-    String citation3
+    String citedby3
+    String cites
 
 }
