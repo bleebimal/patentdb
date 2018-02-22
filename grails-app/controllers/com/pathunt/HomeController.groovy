@@ -47,13 +47,14 @@ class HomeController {
                     def data = 0
                     def input = ""
                     if (inputQuery != null){
-                        data = inputQuery.result != null ? 1 : 0
+                        def empty = inputQuery.result.isEmpty()
+                        data = !empty ? 1 : 0
                         input = inputQuery.query
                         if (inputQuery.isActive){
                             flash.message = "query.running.message"
                             flash.args = ["Query is already being executed. Refresh after some time"]
                         }
-                        else {
+                        else if(!empty){
                             flash.clear()
                         }
                     }
@@ -76,6 +77,7 @@ class HomeController {
     def parser(){
         def lists = new ArrayList<Patent>()
         def data = []
+        def error = false
         def user = springSecurityService.getCurrentUser()
         def userQuery = new Query()
         userQuery.query = params.query
@@ -132,37 +134,39 @@ class HomeController {
             try {
                 data = sql.rows(query)
             }catch (OutOfMemoryError e){
-                flash.message = "memory.exceeded.message"
-                flash.args = ["Out of Memory. Query is too vague"]
-                flash.default = "Resultset exceeded memory size."
-                userQuery.isActive = false
-                userInput.put(user,userQuery)
-                redirect( action: 'index')
+                error = true
             }finally{
                 sql.close()
             }
             println "data size " + data.size()
-            if (data.size() == 0){
-                flash.message = "result.empty.message"
-                flash.default = "empty result"
-            }
-            data.each {
-                Patent patentdemo = new Patent()
-                patentdemo.patent_number = it.publication_number
-                patentdemo.title = it.title
-                patentdemo.abs = it.abstract
-                patentdemo.year = it.year
-                patentdemo.date = it.date
-                patentdemo.first_claim = it.first_claim
-                patentdemo.assignee = it.assignees
-                patentdemo.inventor = it.inventors
-                patentdemo.ipc = it.ipc
-                patentdemo.upc = it.upc
-                patentdemo.cpc = it.cpc
-                patentdemo.citedby3 = it.citedby3
-                patentdemo.cites = it.cites
+            if (!error){
+                if (data.size() == 0){
+                    flash.message = "result.empty.message"
+                    flash.default = "empty result"
+                }
+                data.each {
+                    Patent patentdemo = new Patent()
+                    patentdemo.patent_number = it.publication_number
+                    patentdemo.title = it.title
+                    patentdemo.abs = it.abstract
+                    patentdemo.year = it.year
+                    patentdemo.date = it.date
+                    patentdemo.first_claim = it.first_claim
+                    patentdemo.assignee = it.assignees
+                    patentdemo.inventor = it.inventors
+                    patentdemo.ipc = it.ipc
+                    patentdemo.upc = it.upc
+                    patentdemo.cpc = it.cpc
+                    patentdemo.citedby3 = it.citedby3
+                    patentdemo.cites = it.cites
 
-                lists.add(patentdemo)
+                    lists.add(patentdemo)
+                }
+            }
+            else {
+                flash.message = "memory.exceeded.message"
+                flash.args = ["Out of Memory. Query is too vague"]
+                flash.default = "Resultset exceeded memory size."
             }
         }
         userQuery.result = lists
