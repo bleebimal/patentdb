@@ -148,7 +148,17 @@ class QueryGeneratorService {
                 if (!tables.contains("inventor")){
                     tables.add("inventor")
                 }
-                return "concat(ir.name_first, ' ', ir.name_last) LIKE " + valueField
+                def name = valueField.split(" ")
+                def nameLen = name.size()
+                if (nameLen == 3){
+                    return "concat(ir.name_first, ' ', ir.name_last) LIKE " + valueField
+                }
+                else if (nameLen == 2){
+                    return "ir.name_first LIKE " + name[0].replace("%","") + "%' AND ir.name_last = '" + name[1].replace("%","")
+                }
+                else {
+                    return "ir.name_first LIKE " + valueField.replace("'%","'")
+                }
 
             case "TA":
                 return "p.title LIKE " + valueField + " OR " + "p.abstract LIKE " + valueField
@@ -287,7 +297,17 @@ class QueryGeneratorService {
                 if (!tables.contains("inventor")){
                     tables.add("inventor")
                 }
-                return "concat(ir.name_first, ' ', ir.name_last) LIKE " + valueField
+                def name = valueField.split(" ")
+                def nameLen = name.size()
+                if (nameLen == 3){
+                    return "concat(ir.name_first, ' ', ir.name_last) LIKE " + valueField
+                }
+                else if (nameLen == 2){
+                    return "ir.name_first LIKE " + name[0].replace("%","") + "%' AND ir.name_last = '" + name[1].replace("%","")
+                }
+                else {
+                    return "ir.name_first LIKE " + valueField.replace("'%","'")
+                }
 
             case "CITEDBY_COUNT3":
                 valueField = valueField.replace("%","")
@@ -317,17 +337,22 @@ class QueryGeneratorService {
         if (dateField.length() > 10){
 
             int indexOfT = dateField.indexOf("T")
+            if (indexOfT == -1){
+                error = true
+                return ""
+            }
+            else {
+                String date1 = dateField.substring((indexOfT - 9), (indexOfT - 1))
+                String date2 = dateField.substring((indexOfT + 3), (indexOfT + 11))
 
-            String date1 = dateField.substring((indexOfT - 9), (indexOfT - 1))
-            String date2 = dateField.substring((indexOfT + 3), (indexOfT + 11))
+                String newDate1 = date1.substring(0,4) + "-" + date1.substring(4,6) + "-" +
+                        date1.substring(6,8)
+                String newDate2 = date2.substring(0,4) + "-" + date2.substring(4,6) + "-" +
+                        date2.substring(6,8)
 
-            String newDate1 = date1.substring(0,4) + "-" + date1.substring(4,6) + "-" +
-                    date1.substring(6,8)
-            String newDate2 = date2.substring(0,4) + "-" + date2.substring(4,6) + "-" +
-                    date2.substring(6,8)
-
-            dateField = dateField.replace(date1,newDate1)
-            dateField = dateField.replace(date2,newDate2)
+                dateField = dateField.replace(date1,newDate1)
+                dateField = dateField.replace(date2,newDate2)
+            }
         }
         else {
             String date = dateField.substring(1,9)
