@@ -54,9 +54,17 @@
 	}
 	</style>
 	<script type="application/javascript">
+		/*$(document).ready(function () {
+			$active = $('#active').val();
+			$first = $('#first').val();
+			while ($active && $first !== "0"){
+
+			}
+        });*/
 
 		function beforeSubmit() {
 			removeMultSpace();
+            $('#first').val("1");
 			return update();
         }
         function update() {
@@ -142,11 +150,20 @@
 <br/>
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-md-1">
-			<g:if test="${data}">
+		<g:if test="${data}">
+			<div class="col-md-1">
 				<export:formats formats="['csv']" />
-			</g:if>
-		</div>
+			%{--<g:hiddenField name="active" id="active" value="${active}"/>
+			<g:hiddenField name="first" id="first" value="0"/>--}%
+			</div>
+		</g:if>
+		<g:if test="${duration}">
+			<div class="col-md-3" style="margin-top: 10px;">
+				${duration}
+			%{--<g:hiddenField name="active" id="active" value="${active}"/>
+			<g:hiddenField name="first" id="first" value="0"/>--}%
+			</div>
+		</g:if>
 	</div>
     <div class="row">
 		<div class="col-md-6" style="color: #B22222;" id="errorMessage">

@@ -3,6 +3,9 @@ package com.pathunt
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 import groovy.sql.Sql
+import groovy.time.TimeCategory
+
+import java.sql.SQLException
 
 @Secured('permitAll')
 class HomeController {
@@ -46,10 +49,14 @@ class HomeController {
                 else {
                     def data = 0
                     def input = ""
+//                    def active = false
+                    def duration = 0
                     if (inputQuery != null){
                         def empty = inputQuery.result != null ? inputQuery.result.isEmpty() : true
                         data = !empty ? 1 : 0
                         input = inputQuery.query
+//                        active = inputQuery.isActive
+                        duration = inputQuery.duration
                         if (inputQuery.isActive){
                             flash.message = "query.running.message"
                             flash.args = ["Query is already being executed. Refresh after some time"]
@@ -58,7 +65,7 @@ class HomeController {
                             flash.clear()
                         }
                     }
-                    render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data]
+                    render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data, duration:duration]
                 }
             }
         }
@@ -78,6 +85,7 @@ class HomeController {
         def lists = new ArrayList<Patent>()
         def data = []
         def error = false
+        def sqlError = false
         def user = springSecurityService.getCurrentUser()
         def userQuery = new Query()
         userQuery.query = params.query
@@ -87,7 +95,7 @@ class HomeController {
 //        println "preQuery = $prefix"
         queryGeneratorService.setPrefixQuery(prefix)
 
-        def query = "SELECT concat(p.country,p.id) as 'publication_number', " +
+        def query = "SELECT distinct concat(p.country,p.id) as 'publication_number', " +
                 "p.title, p.abstract, year(p.date) as year, p.date, " +
                 "p.first_claim, "+
                 "p.inventors, " +
@@ -130,16 +138,23 @@ class HomeController {
             query += whereQuery
             println "query " + query
             def sql = new Sql(dataSource)
-
+            def d1, d2
             try {
+                d1 = new Date()
+//                println "d1 = " + (d1)
                 data = sql.rows(query)
             }catch (OutOfMemoryError e){
                 error = true
+            }catch (SQLException a){
+                sqlError = true
             }finally{
-                sql.close()
+                d2 = new Date()
+//                println "d2 = " + (d2)
+                userQuery.duration = TimeCategory.minus( d2, d1 )
+                println "Time Duration = " + userQuery.duration
             }
             println "data size " + data.size()
-            if (!error){
+            if (!error && !sqlError){
                 if (data.size() == 0){
                     flash.message = "result.empty.message"
                     flash.default = "empty result"
@@ -163,10 +178,15 @@ class HomeController {
                     lists.add(patentdemo)
                 }
             }
-            else {
+            else if (error){
                 flash.message = "memory.exceeded.message"
                 flash.args = ["Out of Memory. Query is too vague"]
                 flash.default = "Resultset exceeded memory size."
+            }
+            else if (sqlError){
+                flash.message = "sql.invalid.message"
+                flash.args = ["Syntax error! Please check the query again"]
+                flash.default = "Syntax error!"
             }
         }
         userQuery.result = lists
