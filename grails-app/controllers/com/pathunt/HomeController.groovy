@@ -47,7 +47,7 @@ class HomeController {
                     def data = 0
                     def input = ""
                     if (inputQuery != null){
-                        def empty = inputQuery.result.isEmpty()
+                        def empty = inputQuery.result != null ? inputQuery.result.isEmpty() : true
                         data = !empty ? 1 : 0
                         input = inputQuery.query
                         if (inputQuery.isActive){
