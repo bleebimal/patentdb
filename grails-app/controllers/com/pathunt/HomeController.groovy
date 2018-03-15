@@ -92,101 +92,111 @@ class HomeController {
         userQuery.isActive = true
         userInput.put(user,userQuery)
         String prefix = homeService.translate(userQuery.query)
-//        println "preQuery = $prefix"
-        queryGeneratorService.setPrefixQuery(prefix)
-
-        def query = "SELECT distinct concat(p.country,p.id) as 'publication_number', " +
-                "p.title, p.abstract, year(p.date) as year, p.date, " +
-                "p.first_claim, "+
-                "p.inventors, " +
-                "p.assignees, " +
-                "p.upc, " + "p.ipc, " + "p.cpc, " +
-                "p.citedby3, " + "p.cites " +
-                "FROM patentfinal p "
-        def whereClause = queryGeneratorService.parseQuery()
-//        println "whereClause = $whereClause"
-        if (whereClause.contains("ERROR")){
-            def message = whereClause.split(":")
-            println "Error message = " + message[1]
-            flash.message = "query.invalid.message"
-            flash.args = [message[1]]
-            flash.default = "invalid query"
-            queryGeneratorService.reset()
+//        println "prefix = $prefix"
+        def prefixVal = prefix.split(":")
+//        println "prefixVal = $prefixVal"
+        if (prefixVal[0] == "Error"){
+            flash.message = "cpc.invalid.message"
+            flash.args = [prefixVal[1]]
+            flash.default = "Incorrect CPC value"
         }
         else {
-            def whereQuery = "WHERE " + whereClause
-            def tableList = queryGeneratorService.tables
+            println "preQuery = $prefix"
+            queryGeneratorService.setPrefixQuery(prefix)
 
-            for (String table in tableList) {
-                if (table == "inventor") {
-                    query += joinInventor
-                } else if (table == "assignee") {
-                    query += joinAssignee
-                } else if (table == "upc") {
-                    query += joinUPC
-                } else if (table == "ipc") {
-                    query += joinIPC
-                } else if (table == "cpc") {
-                    query += joinCPC
-                } else if (table == "application") {
-                    query += joinApplication
-                } else if (table == "citation") {
-                    query += joinCitation
-                }
+            def query = "SELECT distinct concat(p.country,p.id) as 'publication_number', " +
+                    "p.title, p.abstract, year(p.date) as year, p.date, " +
+                    "p.first_claim, "+
+                    "p.inventors, " +
+                    "p.assignees, " +
+                    "p.upc, " + "p.ipc, " + "p.cpc, " +
+                    "p.citedby3, " + "p.cites " +
+                    "FROM patentfinal p "
+            def whereClause = queryGeneratorService.parseQuery()
+//        println "whereClause = $whereClause"
+            if (whereClause.contains("ERROR")){
+                def message = whereClause.split(":")
+                println "Error message = " + message[1]
+                flash.message = "query.invalid.message"
+                flash.args = [message[1]]
+                flash.default = "invalid query"
+                queryGeneratorService.reset()
             }
-            queryGeneratorService.reset()
-            query += whereQuery
-            println "query " + query
-            def sql = new Sql(dataSource)
-            def d1, d2
-            try {
-                d1 = new Date()
+            else {
+                def whereQuery = "WHERE " + whereClause
+                def tableList = queryGeneratorService.tables
+
+                for (String table in tableList) {
+                    if (table == "inventor") {
+                        query += joinInventor
+                    } else if (table == "assignee") {
+                        query += joinAssignee
+                    } else if (table == "upc") {
+                        query += joinUPC
+                    } else if (table == "ipc") {
+                        query += joinIPC
+                    } else if (table == "cpc") {
+                        query += joinCPC
+                    } else if (table == "application") {
+                        query += joinApplication
+                    } else if (table == "citation") {
+                        query += joinCitation
+                    }
+                }
+                queryGeneratorService.reset()
+                query += whereQuery
+                println "query " + query
+                def sql = new Sql(dataSource)
+                def d1, d2
+                try {
+                    d1 = new Date()
 //                println "d1 = " + (d1)
-                data = sql.rows(query)
-            }catch (OutOfMemoryError e){
-                error = true
-            }catch (SQLException a){
-                sqlError = true
-            }finally{
-                d2 = new Date()
+                    data = sql.rows(query)
+                }catch (OutOfMemoryError e){
+                    error = true
+                }catch (SQLException a){
+                    sqlError = true
+                }finally{
+                    d2 = new Date()
 //                println "d2 = " + (d2)
-                userQuery.duration = TimeCategory.minus( d2, d1 )
-                println "Time Duration = " + userQuery.duration
-            }
-            println "data size " + data.size()
-            if (!error && !sqlError){
-                if (data.size() == 0){
-                    flash.message = "result.empty.message"
-                    flash.default = "empty result"
+                    userQuery.duration = TimeCategory.minus( d2, d1 )
+                    println "Time Duration = " + userQuery.duration
                 }
-                data.each {
-                    Patent patentdemo = new Patent()
-                    patentdemo.patent_number = it.publication_number
-                    patentdemo.title = it.title
-                    patentdemo.abs = it.abstract
-                    patentdemo.year = it.year
-                    patentdemo.date = it.date
-                    patentdemo.first_claim = it.first_claim
-                    patentdemo.assignee = it.assignees
-                    patentdemo.inventor = it.inventors
-                    patentdemo.ipc = it.ipc
-                    patentdemo.upc = it.upc
-                    patentdemo.cpc = it.cpc
-                    patentdemo.citedby3 = it.citedby3
-                    patentdemo.cites = it.cites
+                println "data size " + data.size()
+                if (!error && !sqlError){
+                    if (data.size() == 0){
+                        flash.message = "result.empty.message"
+                        flash.default = "empty result"
+                    }
+                    data.each {
+                        Patent patentdemo = new Patent()
+                        patentdemo.patent_number = it.publication_number
+                        patentdemo.title = it.title
+                        patentdemo.abs = it.abstract
+                        patentdemo.year = it.year
+                        patentdemo.date = it.date
+                        patentdemo.first_claim = it.first_claim
+                        patentdemo.assignee = it.assignees
+                        patentdemo.inventor = it.inventors
+                        patentdemo.ipc = it.ipc
+                        patentdemo.upc = it.upc
+                        patentdemo.cpc = it.cpc
+                        patentdemo.citedby3 = it.citedby3
+                        patentdemo.cites = it.cites
 
-                    lists.add(patentdemo)
+                        lists.add(patentdemo)
+                    }
                 }
-            }
-            else if (error){
-                flash.message = "memory.exceeded.message"
-                flash.args = ["Out of Memory. Query is too vague"]
-                flash.default = "Resultset exceeded memory size."
-            }
-            else if (sqlError){
-                flash.message = "sql.invalid.message"
-                flash.args = ["Syntax error! Please check the query again"]
-                flash.default = "Syntax error!"
+                else if (error){
+                    flash.message = "memory.exceeded.message"
+                    flash.args = ["Out of Memory. Query is too vague"]
+                    flash.default = "Resultset exceeded memory size."
+                }
+                else if (sqlError){
+                    flash.message = "sql.invalid.message"
+                    flash.args = ["Syntax error! Please check the query again"]
+                    flash.default = "Syntax error!"
+                }
             }
         }
         userQuery.result = lists

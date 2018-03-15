@@ -64,8 +64,8 @@
 
 		function beforeSubmit() {
 			removeMultSpace();
-            $('#first').val("1");
 			return update();
+
         }
         function update() {
             $input = $('#input').val();
@@ -76,19 +76,24 @@
             } catch (error) {
                 $errors = error.message;
                 $errors = $errors.split(":");
-                console.log($errors);
+//                console.log($errors);
                 $errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
-                $output = $('#errorMessage').text($errorMessage || '');
+                $('#errorMessage').text($errorMessage || '');
 				return false;
             }
         }
+
         function removeMultSpace() {
             $str = $('#input').val();
 //            console.log('first: '+ $str);
             $str = $str.replace(/ {2,}/g,' ');
+            $str = $str.replace(/\)A/g,') A');
+            $str = $str.replace(/\)O/g,') O');
+            $str = $str.replace(/\)N/g,') N');
             $('#input').val($str);
 //            console.log('second: '+ $str);
         }
+
         function changePassword(){
             $("#changePassword").modal("show");
         }
