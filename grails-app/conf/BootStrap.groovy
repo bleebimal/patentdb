@@ -47,6 +47,25 @@ class BootStrap {
                 }
             }
         }
+        def asciiArt = """
+PPPPPPPPPPPPPPPPP        AAA         TTTTTTTTTTTTTTTTTTTTTTTHHHHHHHHH     HHHHHHHHHUUUUUUUU     UUUUUUUUNNNNNNNN        NNNNNNNNTTTTTTTTTTTTTTTTTTTTTTT
+P::::::::::::::::P      A:::A        T:::::::::::::::::::::TH:::::::H     H:::::::HU::::::U     U::::::UN:::::::N       N::::::NT:::::::::::::::::::::T
+P::::::PPPPPP:::::P    A:::::A       T:::::::::::::::::::::TH:::::::H     H:::::::HU::::::U     U::::::UN::::::::N      N::::::NT:::::::::::::::::::::T
+PP:::::P     P:::::P  A:::::::A      T:::::TT:::::::TT:::::THH::::::H     H::::::HHUU:::::U     U:::::UUN:::::::::N     N::::::NT:::::TT:::::::TT:::::T
+  P::::P     P:::::P A:::::::::A     TTTTTT  T:::::T  TTTTTT  H:::::H     H:::::H   U:::::U     U:::::U N::::::::::N    N::::::NTTTTTT  T:::::T  TTTTTT
+  P::::P     P:::::PA:::::A:::::A            T:::::T          H:::::H     H:::::H   U:::::D     D:::::U N:::::::::::N   N::::::N        T:::::T        
+  P::::PPPPPP:::::PA:::::A A:::::A           T:::::T          H::::::HHHHH::::::H   U:::::D     D:::::U N:::::::N::::N  N::::::N        T:::::T        
+  P:::::::::::::PPA:::::A   A:::::A          T:::::T          H:::::::::::::::::H   U:::::D     D:::::U N::::::N N::::N N::::::N        T:::::T        
+  P::::PPPPPPPPP A:::::A     A:::::A         T:::::T          H:::::::::::::::::H   U:::::D     D:::::U N::::::N  N::::N:::::::N        T:::::T        
+  P::::P        A:::::AAAAAAAAA:::::A        T:::::T          H::::::HHHHH::::::H   U:::::D     D:::::U N::::::N   N:::::::::::N        T:::::T        
+  P::::P       A:::::::::::::::::::::A       T:::::T          H:::::H     H:::::H   U:::::D     D:::::U N::::::N    N::::::::::N        T:::::T        
+  P::::P      A:::::AAAAAAAAAAAAA:::::A      T:::::T          H:::::H     H:::::H   U::::::U   U::::::U N::::::N     N:::::::::N        T:::::T        
+PP::::::PP   A:::::A             A:::::A   TT:::::::TT      HH::::::H     H::::::HH U:::::::UUU:::::::U N::::::N      N::::::::N      TT:::::::TT      
+P::::::::P  A:::::A               A:::::A  T:::::::::T      H:::::::H     H:::::::H  UU:::::::::::::UU  N::::::N       N:::::::N      T:::::::::T      
+P::::::::P A:::::A                 A:::::A T:::::::::T      H:::::::H     H:::::::H    UU:::::::::UU    N::::::N        N::::::N      T:::::::::T      
+PPPPPPPPPPAAAAAAA                   AAAAAAATTTTTTTTTTT      HHHHHHHHH     HHHHHHHHH      UUUUUUUUU      NNNNNNNN         NNNNNNN      TTTTTTTTTTT      
+"""
+        println asciiArt
     }
     def destroy = {
     }

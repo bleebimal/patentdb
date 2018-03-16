@@ -3,6 +3,8 @@ package pathunt
 import grails.transaction.Transactional
 import org.apache.commons.lang.StringUtils
 
+import java.util.regex.Pattern
+
 @Transactional
 class HomeService {
     //[TA:((virus OR viral) AND (separation OR clearance))] AND [IPC:(H01L41/00)] AND [AN:(halala)]
@@ -32,11 +34,22 @@ class HomeService {
 //        println("val after processBracket = " + val);
         String separatedQuery = preProcessForPrefix();
 //        println("val after prefixPreProcess = " + separatedQuery);
-        String prefix = prefixConverter(separatedQuery)
-        operands.clear();
-        operandExpressions.clear();
+        def cpcPattern = /CPC:~/
+        def cpcValidate = validate(separatedQuery, cpcPattern)
+        if (cpcValidate == true){
+            String prefix = prefixConverter(separatedQuery)
+            operands.clear();
+            operandExpressions.clear();
 //        println("val after prefix= " + prefix);
-        return prefix.trim();
+            return prefix.trim();
+        }
+        else {
+            operands.clear();
+            operandExpressions.clear();
+//            println "cpcValidate = $cpcValidate"
+            return "Error:"+cpcValidate
+        }
+
     }
 
     private String replaceSpace(String expression){
@@ -345,8 +358,73 @@ class HomeService {
             operandIndex++;
         }
 
+        return finalExpression.toString().trim()
+    }
 
-        return finalExpression.toString().trim();
+    private def validate(String expression, String pattern){
+        def cBracketIndex
+//        println "expression = $expression"
+//        println "pattern = $pattern"
+//        println "contains = " +expression.contains(pattern)
+        if (expression.contains(pattern)){
+            def cpcValues = expression.split(pattern)
+//            println "cpcValues = $cpcValues"
+//            println "cpcValues length = $cpcValues.length"
+            def res = true
+            def patt
+            def cpcVal = ""
+            for (int i = 1; i < cpcValues.length; i++) {
+//                println "i = $i"
+                if (res){
+                    cBracketIndex = cpcValues[i].indexOf("|")
+//                    println "cBracketIndex = $cBracketIndex"
+                     cpcVal = cpcValues[i].substring(0,cBracketIndex)
+//                    println "cpcVal = $cpcVal"
+//                    println "cpcVal size = " + cpcVal.size()
+                    if(cpcVal.size() == 1){
+                        patt = /^([A-Z])$/
+//                        println Pattern.compile(patt).matcher(cpcVal).matches()
+                        res = Pattern.compile(patt).matcher(cpcVal).matches()
+                    }
+                    else if(cpcVal.size() == 3){
+                        patt = /^([A-Z])\d\d$/
+//                        println Pattern.compile(patt).matcher(cpcVal).matches()
+                        res = Pattern.compile(patt).matcher(cpcVal).matches()
+                    }
+                    else if(cpcVal.size() == 4){
+                        patt = /^([A-Z])\d\d[A-Z]$/
+//                        println Pattern.compile(patt).matcher(cpcVal).matches()
+                        res = Pattern.compile(patt).matcher(cpcVal).matches()
+                    }
+                    else if(cpcVal.size() > 4){
+                        def subVal = cpcVal.split("/")
+//                        println "subVal = $subVal"
+                        patt = /^([A-Z])\d\d[A-Z]\d{1,4}$/
+                        res = Pattern.compile(patt).matcher(subVal[0]).matches()
+//                        println "res = $res"
+//                        println "subVal Length = " + subVal.length
+                        if(subVal.length > 1){
+                            patt = /^\d{2,}$/
+                            res = res && Pattern.compile(patt).matcher(subVal[1]).matches()
+//                            println "res = $res"
+                        }
+                    }
+                    else {
+                        res = false
+                    }
+                }
+                else {
+                    res = false
+                }
+            }
+//            println "res1 = $res"
+            if (res){
+                return res
+            }
+            else {
+                return cpcVal
+            }
+        }
     }
 
     private String prefixConverter(String queryExpression){
