@@ -35,20 +35,30 @@ class HomeService {
         String separatedQuery = preProcessForPrefix();
 //        println("val after prefixPreProcess = " + separatedQuery);
         def cpcPattern = /CPC:~/
-        def cpcValidate = validate(separatedQuery, cpcPattern)
-        if (cpcValidate == true){
+        if (separatedQuery.contains(cpcPattern)){
+            def cpcValidate = validate(separatedQuery, cpcPattern)
+            if (cpcValidate == true){
+                String prefix = prefixConverter(separatedQuery)
+                operands.clear();
+                operandExpressions.clear();
+//        println("val after prefix= " + prefix);
+                return prefix.trim();
+            }
+            else {
+                operands.clear();
+                operandExpressions.clear();
+//            println "cpcValidate = $cpcValidate"
+                return "Error:"+cpcValidate
+            }
+        }
+        else {
             String prefix = prefixConverter(separatedQuery)
             operands.clear();
             operandExpressions.clear();
 //        println("val after prefix= " + prefix);
             return prefix.trim();
         }
-        else {
-            operands.clear();
-            operandExpressions.clear();
-//            println "cpcValidate = $cpcValidate"
-            return "Error:"+cpcValidate
-        }
+
 
     }
 
