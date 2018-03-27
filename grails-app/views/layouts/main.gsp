@@ -10,13 +10,22 @@
 	<title><g:layoutTitle default="Pathunt"/></title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<asset:stylesheet src="jquery.dataTables.min.css"/>
+	<asset:stylesheet src="dataTables.jqueryui.min.css"/>
 	<asset:stylesheet src="bootstrap.min.css"/>
+	<asset:stylesheet src="datatables.min.css"/>
+	<asset:stylesheet src="dataTables.bootstrap.min.css"/>
+	<asset:stylesheet src="dataTables.foundation.min.css"/>
 	<asset:stylesheet src="mdb.min.css"/>
 	<asset:stylesheet src="style.css"/>
 	<asset:stylesheet src="export.css"/>
 	<asset:javascript src="jquery-3.2.1.min.js"/>
 	<asset:javascript src="balanced-min.js"/>
 	<asset:javascript src="bootstrap.min.js"/>
+	<asset:javascript src="datatables.min.js"/>
+	<asset:javascript src="dataTables.bootstrap.min.js"/>
+	<asset:javascript src="dataTables.foundation.min.js"/>
+	<asset:javascript src="dataTables.jqueryui.min.js"/>
 	<asset:javascript src="popper.min.js"/>
 	<asset:javascript src="mdb.min.js"/>
 	<asset:link rel="icon" href="deerwalk.png" type="image/png"/>
