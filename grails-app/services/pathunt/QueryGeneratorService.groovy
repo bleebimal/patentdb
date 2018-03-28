@@ -17,10 +17,22 @@ class QueryGeneratorService {
     boolean error = false
     ArrayList<String> tables = new ArrayList<String>()
 
+    /**
+     * set prefix query for applying recursive prefix evaluation algorithm
+     *
+     * @param  prefixQuery - prefix query
+     *
+     */
     def setPrefixQuery(String prefixQuery){
         this.prefixQuery = prefixQuery
     }
 
+    /**
+     * process prefix query using recursive prefix evaluation algorithm to generate sql query
+     *
+     * @return  whereCondition - where condition part of sql query
+     *
+     */
     def parseQuery() {
         //println "error = $error"
         if (! error){
@@ -72,6 +84,14 @@ class QueryGeneratorService {
         }
     }
 
+    /**
+     * check for abbreviation in the given operand of prefix query and return
+     * equivalent where condition of sql query
+     *
+     * @param  operand - operand of prefix query
+     * @return sqlQuery - sql query equivalent of the operand of prefix query
+     *
+     */
     def generateWhereCondition(String operand){
         //TODO: error handling for queryField:(valueFiled) not in operand
 
@@ -99,9 +119,9 @@ class QueryGeneratorService {
                 return "p.first_claim LIKE " + valueField
 
             case "IPC":
-                /*if (!ipc){
+                if (!ipc){
                     ipc = true
-                }*/
+                }
                 if (!tables.contains("ipc")){
                     tables.add("ipc")
                     //println "size of table: " + tables.size()
@@ -109,6 +129,8 @@ class QueryGeneratorService {
                 valueField = valueField.replace("'%","'")
                 return "concat(i.section, i.ipc_class, " +
                         "i.subclass, i.main_group, '/', i.subgroup) LIKE " + valueField
+                /*valueField = valueField.replace("%'"," |%'")
+                return "p.ipc LIKE " + valueField*/
             case "UPC":
                 /*if (!upc){
                     upc = true
@@ -337,6 +359,12 @@ class QueryGeneratorService {
         }
     }
 
+    /**
+     * convert ddmmyyyy (ddmmyyyy TO ddmmyyy) to dd-mm-yyy (dd-mm-yyyy TO dd-mm-yyyy)
+     *
+     * @param  dateField - prefix query
+     * @return dateField -
+     */
     def generateDate(String dateField){
         if (dateField.length() > 10){
 
@@ -369,6 +397,11 @@ class QueryGeneratorService {
         return dateField
     }
 
+    /**
+     * set prefix query for applying recursive prefix evaluation algorithm
+     *
+     *
+     */
     def reset(){
         inventor = false
         assignee = false

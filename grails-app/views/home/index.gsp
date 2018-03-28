@@ -11,60 +11,67 @@
 		padding-left: 0.8rem;
 	}
 	.textAreaHeight {
-        height: 300px;
-    }
+		height: 70px;
+	}
 
-    .dropbtn {
-        background-color: #ffffff;
-        color: #0056b3;
-        padding: 16px;
-        font-size: 16px;
-        border: none;
-    }
+	.dropbtn {
+		background-color: #ffffff;
+		color: #0056b3;
+		padding: 16px;
+		font-size: 16px;
+		border: none;
+	}
 
-    .dropdown {
-        position: relative;
-        display: inline-block;
-    }
+	.dropdown {
+		position: relative;
+		display: inline-block;
+	}
 
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: #f1f1f1;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
-    }
+	.dropdown-content {
+		display: none;
+		position: absolute;
+		background-color: #f1f1f1;
+		min-width: 160px;
+		box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+		z-index: 1;
+	}
 
-    .dropdown-content a {
-        color: black;
-        padding: 8px 16px;
-        text-decoration: none;
-        display: block;
-    }
+	.dropdown-content a {
+		color: black;
+		padding: 8px 16px;
+		text-decoration: none;
+		display: block;
+	}
 
-    .dropdown-content a:hover {background-color: #ddd}
+	.dropdown-content a:hover {background-color: #ddd}
 
-    .dropdown:hover .dropdown-content {
-        display: block;
-    }
+	.dropdown:hover .dropdown-content {
+		display: block;
+	}
 
-    .dropdown:hover .dropbtn {
-        background-color: #9e9e9e;
+	.dropdown:hover .dropbtn {
+		background-color: #9e9e9e;
 	}
 	</style>
 	<script type="application/javascript">
-		/*$(document).ready(function () {
-			$active = $('#active').val();
-			$first = $('#first').val();
-			while ($active && $first !== "0"){
+        $(document).ready(function () {
+            $('#sample').DataTable();
+            $('#sample_length').hide();
+            $('#sample_filter').hide();
+            $('#sample_info').hide();
+            $('.clrBtn').removeAttr("onclick").removeClass("disabled");
+        });
 
-			}
-        });*/
+        window.onbeforeunload = function() {
+            console.log("here");
+//            return true;
+        };
 
-		function beforeSubmit() {
-			removeMultSpace();
-			return update();
+        function beforeSubmit() {
+            $('.clrBtn').attr("onclick","return false;").addClass("disabled");
+            $('.runBtn').attr("disabled","disabled");
+            removeMultSpace();
+            return update();
 
         }
         function update() {
@@ -79,7 +86,7 @@
 //                console.log($errors);
                 $errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
                 $('#errorMessage').text($errorMessage || '');
-				return false;
+                return false;
             }
         }
 
@@ -129,18 +136,18 @@
 			</li>
 		</ul>
 
-			<div class="dropdown" style="float:right;">
-				<button class="dropbtn">Options <asset:image src="icon.png"/></button>
+		<div class="dropdown" style="float:right;">
+			<button class="dropbtn">Options <asset:image src="icon.png"/></button>
 
-				    <div class="dropdown-content">
-					    <span class="navbar-text white-text">
-                            <a> <g:link onclick="changePassword();return false;">Change Password</g:link> </a>
-					    </span>
-					    <span class="navbar-text white-text">
-						    <g:link controller="logout" action="index">Logout</g:link>
-					    </span>
-				    </div>
-            </div>
+			<div class="dropdown-content">
+				<span class="navbar-text white-text">
+					<a> <g:link onclick="changePassword();return false;">Change Password</g:link> </a>
+				</span>
+				<span class="navbar-text white-text">
+					<g:link controller="logout" action="index">Logout</g:link>
+				</span>
+			</div>
+		</div>
 
 
 	</div>
@@ -158,22 +165,23 @@
 		<g:if test="${data}">
 			<div class="col-md-1">
 				<export:formats formats="['csv']" />
-			%{--<g:hiddenField name="active" id="active" value="${active}"/>
-			<g:hiddenField name="first" id="first" value="0"/>--}%
+				%{--<g:hiddenField name="active" id="active" value="${active}"/>
+                <g:hiddenField name="first" id="first" value="0"/>--}%
+			</div>
+			<div class="col-md-3" style="margin-top: 10px;">
+				<span> Total No. of Result Patents: ${data} </span>
 			</div>
 		</g:if>
 		<g:if test="${duration}">
 			<div class="col-md-3" style="margin-top: 10px;">
-				${duration}
-			%{--<g:hiddenField name="active" id="active" value="${active}"/>
-			<g:hiddenField name="first" id="first" value="0"/>--}%
+				<span> Time taken: ${duration} </span>
 			</div>
 		</g:if>
 	</div>
-    <div class="row">
+	<div class="row">
 		<div class="col-md-6" style="color: #B22222;" id="errorMessage">
-            <g:message code="${flash.message}" args="${flash.args}"
-                       default="${flash.default}"/>
+			<g:message code="${flash.message}" args="${flash.args}"
+					   default="${flash.default}"/>
 		</div>
 	</div>
 </div>
@@ -182,8 +190,14 @@
 		<g:form controller="home" action="parser" onsubmit="return beforeSubmit();">
 			<g:textArea id="input" class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
-			<g:link controller="home" class="btn btn-teal accent-1 btn-sm" action="clear" style="font-size: 18px;"> Clear </g:link>
-			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm" value="Run" style="font-size: 18px;"/>
+			<g:if test="${active}">
+				<g:submitButton name="run" disabled="" class="btn btn-teal accent-1 btn-sm runBtn" value="Run" style="font-size: 18px;"/>
+				<g:link controller="home" class="btn btn-teal accent-1 btn-sm" action="stop" style="font-size: 18px;"> Stop </g:link>
+			</g:if>
+			<g:else>
+				<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm runBtn" value="Run" style="font-size: 18px;"/>
+				<g:link controller="home" class="btn btn-teal accent-1 btn-sm clrBtn" action="clear" style="font-size: 18px;"> Clear </g:link>
+			</g:else>
 		</g:form>
 	</div>
 </div>
@@ -238,29 +252,51 @@
 		</div>
 	</div>
 </div>
-%{--${data.size()}
-        <g:if test="${data}">
-            <table border="1 px" width="90%">
-                <thead>
-                <th>Publication Number</th>
-                <th>Title</th>
-                <th>Abstract</th>
-                <th>Year</th>
-                <th>Date</th>
-                </thead>
-                <tbody>
-                <g:each in="${data}" var="row" status="i">
-                    <tr>
-                        <td>${row.publication_number}</td>
-                        <td>${row.title}</td>
-                        <td>${row.abstract}</td>
-                        <td>${row.year}</td>
-                        <td>${row.date}</td>
-                    </tr>
-                </g:each>
-                </tbody>
-            </table>
-        </g:if>--}%
 
+<g:if test="${sample}">
+	<div class="container-fluid">
+		<div id="sampleTable">
+			<h3 style="text-align: center;">Preview</h3>
+			<table id="sample" border="1px" class="display responsive no-wrap " style="width:100%">
+				<thead>
+				<tr>
+					<th>Publication Number</th>
+					<th>Year</th>
+					<th>Date</th>
+					<th>Assignee</th>
+					<th>Inventor</th>
+					<th>All_IPC(s)</th>
+					<th>All_UPC(s)</th>
+					<th>All_CPC(s)</th>
+					<th>Cited By</th>
+					<th>Cites Count</th>
+					<th>Title</th>
+					<th>Abstract</th>
+					<th>First Claim</th>
+				</tr>
+				</thead>
+				<tbody>
+				<g:each in="${sample}" var="row" status="i">
+					<tr>
+						<td>${row.patent_number}</td>
+						<td>${row.year}</td>
+						<td>${row.date}</td>
+						<td>${row.assignee}</td>
+						<td>${row.inventor}</td>
+						<td>${row.ipc}</td>
+						<td>${row.upc}</td>
+						<td>${row.cpc}</td>
+						<td>${row.citedby3}</td>
+						<td>${row.cites}</td>
+						<td>${row.title}</td>
+						<td>${row.abs}</td>
+						<td>${row.first_claim}</td>
+					</tr>
+				</g:each>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</g:if>
 </body>
 </html>
