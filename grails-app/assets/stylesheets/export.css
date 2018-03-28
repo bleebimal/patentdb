@@ -1,16 +1,16 @@
 .export {
-    background-color: #046031;
-    padding: 5px 0;
+    background-color: #046031 !important;
     width: auto;
     color: #fff;
     border-radius: 3px !important;
-    padding:5px;
+    padding:0px !important;
 }
 
-a.csv {
-    background: url(../images/skin/csv.png) center left no-repeat;
-    color: #fff;
-    padding: 20px;
+.menuButton a.csv {
+    background: url(../images/skin/csv.png) #0f5288 center left no-repeat !important;
+    color: #fff !important;
+    padding-right: 25px !important;
+    padding-bottom: 2px !important;
 }
 
 .menuButton a.excel {
@@ -49,4 +49,16 @@ a.csv {
 }
 a.navbar-brand{
     color:#000 !important;
+}
+.more {
+    display: block;
+}
+.expanding {
+    display: none;
+}
+td:hover > .expanding {
+    display: block;
+}
+td:hover > .more {
+    display: none;
 }

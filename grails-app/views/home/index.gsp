@@ -54,67 +54,67 @@
 	}
 	</style>
 	<script type="application/javascript">
-        $(document).ready(function () {
-            $('#sample').DataTable();
-            $('#sample_length').hide();
-            $('#sample_filter').hide();
-            $('#sample_info').hide();
-            $('.clrBtn').removeAttr("onclick").removeClass("disabled");
-        });
+		$(document).ready(function () {
+			$('#sample').DataTable();
+			$('#sample_length').hide();
+			$('#sample_filter').hide();
+			$('#sample_info').hide();
+			$('.clrBtn').removeAttr("onclick").removeClass("disabled");
+		});
 
-        window.onbeforeunload = function() {
-            console.log("here");
+		window.onbeforeunload = function() {
+			console.log("here");
 //            return true;
-        };
+		};
 
-        function beforeSubmit() {
-            $('.clrBtn').attr("onclick","return false;").addClass("disabled");
-            $('.runBtn').attr("disabled","disabled");
-            removeMultSpace();
-            return update();
+		function beforeSubmit() {
+			$('.clrBtn').attr("onclick","return false;").addClass("disabled");
+			$('.runBtn').attr("disabled","disabled");
+			removeMultSpace();
+			return update();
 
-        }
-        function update() {
-            $input = $('#input').val();
+		}
+		function update() {
+			$input = $('#input').val();
 //            console.log($input);
-            try {
-                balanced.matches({source: $input, open: ['{', '(', '['], close: ['}', ')', ']'], balance: true, exceptions: true});
-                return true;
-            } catch (error) {
-                $errors = error.message;
-                $errors = $errors.split(":");
+			try {
+				balanced.matches({source: $input, open: ['{', '(', '['], close: ['}', ')', ']'], balance: true, exceptions: true});
+				return true;
+			} catch (error) {
+				$errors = error.message;
+				$errors = $errors.split(":");
 //                console.log($errors);
-                $errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
-                $('#errorMessage').text($errorMessage || '');
-                return false;
-            }
-        }
+				$errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
+				$('#errorMessage').text($errorMessage || '');
+				return false;
+			}
+		}
 
-        function removeMultSpace() {
-            $str = $('#input').val();
+		function removeMultSpace() {
+			$str = $('#input').val();
 //            console.log('first: '+ $str);
-            $str = $str.replace(/ {2,}/g,' ');
-            $str = $str.replace(/\)A/g,') A');
-            $str = $str.replace(/\)O/g,') O');
-            $str = $str.replace(/\)N/g,') N');
-            $('#input').val($str);
+			$str = $str.replace(/ {2,}/g,' ');
+			$str = $str.replace(/\)A/g,') A');
+			$str = $str.replace(/\)O/g,') O');
+			$str = $str.replace(/\)N/g,') N');
+			$('#input').val($str);
 //            console.log('second: '+ $str);
-        }
+		}
 
-        function changePassword(){
-            $("#changePassword").modal("show");
-        }
-        function checkMatch(){
-            var npassword1=$("#newPassword").val();
-            var npassword2=$("#repeatPassword").val();
-            console.log(npassword1 + "..." + npassword2);
-            if (npassword1!=npassword2){
-                $("#errorPwd").text("Re-enter the password correctly!");
-                return false;
-            }else{
-                $("#changePwd").submit();
-            }
-        }
+		function changePassword(){
+			$("#changePassword").modal("show");
+		}
+		function checkMatch(){
+			var npassword1=$("#newPassword").val();
+			var npassword2=$("#repeatPassword").val();
+			console.log(npassword1 + "..." + npassword2);
+			if (npassword1!=npassword2){
+				$("#errorPwd").text("Re-enter the password correctly!");
+				return false;
+			}else{
+				$("#changePwd").submit();
+			}
+		}
 	</script>
 </head>
 <body>
@@ -281,14 +281,28 @@
 						<td>${row.patent_number}</td>
 						<td>${row.year}</td>
 						<td>${row.date}</td>
-						<td>${row.assignee}</td>
-						<td>${row.inventor}</td>
+						<td>
+							${row.assignee}
+						</td>
+						<td>
+							<span class="viewData">${row.inventor.length() > 20 ? row.inventor.substring(0, 20) + "..." : row.inventor}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.inventor} </span>
+						</td>
 						<td>${row.ipc}</td>
 						<td>${row.upc}</td>
-						<td>${row.cpc}</td>
+						<td>
+							<span class="viewData">${row.cpc.length() > 20 ? row.cpc.substring(0, 20) + "..." : row.cpc}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.cpc} </span>
+						</td>
 						<td>${row.citedby3}</td>
 						<td>${row.cites}</td>
-						<td>${row.title}</td>
+						<td>
+							<span class="viewData">${row.title.length() > 80 ? row.title.substring(0, 80) + "..." : row.title}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.title} </span>
+						</td>
 						<td>${row.abs}</td>
 						<td>${row.first_claim}</td>
 					</tr>
@@ -298,5 +312,14 @@
 		</div>
 	</div>
 </g:if>
+<script>
+	$(".more").toggle(function(){
+		$(this).text("less..").siblings(".complete").show();
+		$(".viewData").css("display","none");
+	}, function(){
+		$(this).text("more..").siblings(".complete").hide();
+	});
+</script>
+<br>
 </body>
 </html>
