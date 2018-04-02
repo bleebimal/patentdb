@@ -54,22 +54,49 @@
 	}
 	</style>
 	<script type="application/javascript">
-		$(document).ready(function () {
-			$('#sample').DataTable();
-			$('#sample_length').hide();
-			$('#sample_filter').hide();
-			$('#sample_info').hide();
-			$('.clrBtn').removeAttr("onclick").removeClass("disabled");
-		});
+        $(document).ready(function () {
+            $('#sample').DataTable();
+            $('#sample_length').hide();
+            $('#sample_filter').hide();
+            $('#sample_info').hide();
+            $('.csv').attr("onclick","return false;").addClass("disabled");
+            $('.clrBtn').hide();
+            $('#loading').hide();
+			<g:if test="${active}">
+            	$('.runBtn').attr("disabled","disabled");
+				var URL="${createLink(controller:'home',action:'taskComplete')}";
+				$.ajax({
+					url:URL,
+					success: function(resp){
+						console.log(resp);
+						if(resp[0]){
+                            $('.runBtn').removeAttr("disabled","disabled");
+							$('.csv').removeAttr("onclick").removeClass("disabled");
+                            $('.stpBtn').hide();
+                            $('#errorMessage').text("Click CSV to download.");
+                            $('.clrBtn').show();
+                        }
+					}
+				});
+			</g:if>
+			<g:else>
+				<g:if test="${duration}">
+            		$('.csv').removeAttr("onclick").removeClass("disabled");
+				</g:if>
+            	$('.clrBtn').show();
+			</g:else>
+        });
 
-		window.onbeforeunload = function() {
-			console.log("here");
-//            return true;
-		};
+        function toggle() {
+            location.reload(true);
+        }
 
 		function beforeSubmit() {
+            $('#loading').show();
+            $('#errorMessage').text("");
 			$('.clrBtn').attr("onclick","return false;").addClass("disabled");
 			$('.runBtn').attr("disabled","disabled");
+            $('.csv').attr("onclick","return false;").addClass("disabled");
 			removeMultSpace();
 			return update();
 
@@ -175,6 +202,9 @@
 <br/>
 <div class="container-fluid">
 	<div class="row">
+		<div class="col-md-1" id="loading" style="width: 30px; height: 30px;">
+			<asset:image src="loading.gif"/>
+		</div>
 		<g:if test="${data}">
 			<div class="col-md-1">
 				<export:formats formats="['csv']" />
@@ -182,11 +212,11 @@
                 <g:hiddenField name="first" id="first" value="0"/>--}%
 			</div>
 			<div class="col-md-3" style="margin-top: 10px;">
-				<span> Total No. of Result Patents: ${data} </span>
+				<span> Total No. of Patents: ${data} </span>
 			</div>
 		</g:if>
 		<g:if test="${duration}">
-			<div class="col-md-3" style="margin-top: 10px;">
+			<div class="col-md-3" id="duration" style="margin-top: 10px;">
 				<span> Time taken: ${duration} </span>
 			</div>
 		</g:if>
@@ -203,14 +233,11 @@
 		<g:form controller="home" action="parser" onsubmit="return beforeSubmit();">
 			<g:textArea id="input" class="form-control z-depth-1 textAreaHeight" name="query" value="${sqlQuery}" placeholder="Enter Query" required="" rows="10" style="padding:4px;"/>
 			<br/>
+			<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm runBtn" value="Run" style="font-size: 18px;"/>
 			<g:if test="${active}">
-				<g:submitButton name="run" disabled="" class="btn btn-teal accent-1 btn-sm runBtn" value="Run" style="font-size: 18px;"/>
-				<g:link controller="home" class="btn btn-teal accent-1 btn-sm" action="stop" style="font-size: 18px;"> Stop </g:link>
+				<g:link controller="home" class="btn btn-teal accent-1 btn-sm stpBtn" action="stop" style="font-size: 18px;"> Stop </g:link>
 			</g:if>
-			<g:else>
-				<g:submitButton name="run" class="btn btn-teal accent-1 btn-sm runBtn" value="Run" style="font-size: 18px;"/>
-				<g:link controller="home" class="btn btn-teal accent-1 btn-sm clrBtn" action="clear" style="font-size: 18px;"> Clear </g:link>
-			</g:else>
+			<g:link controller="home" class="btn btn-teal accent-1 btn-sm clrBtn" action="clear" style="font-size: 18px;"> Clear </g:link>
 		</g:form>
 	</div>
 </div>
@@ -289,7 +316,7 @@
 
 <g:if test="${sample}">
 	<div class="container-fluid">
-		<div id="sampleTable">
+		<div id="sampleTable" style="width:80%; margin: 0 auto;">
 			<h3 style="text-align: center;">Preview</h3>
 			<table id="sample" border="1px" class="display responsive no-wrap " style="width:100%">
 				<thead>
@@ -316,27 +343,33 @@
 						<td>${row.year}</td>
 						<td>${row.date}</td>
 						<td>
-							${row.assignee}
+							<span class="viewData">${row.assignee.length() > 20 ?  (row.assignee.indexOf('|') != -1 ? row.assignee.substring(0, row.assignee.indexOf('|')) : row.assignee.substring(0, 20)) : row.assignee}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.assignee.length() > 20 ? (row.assignee.indexOf('|') != -1 ? row.assignee.substring(row.assignee.indexOf('|'), row.assignee.length()) : row.assignee.substring(20, row.assignee.length())) : " "} </span>
 						</td>
 						<td>
-							<span class="viewData">${row.inventor.length() > 20 ? row.inventor.substring(0, 20) + "..." : row.inventor}</span>
+							<span class="viewData">${row.inventor.length() > 20 ?  (row.inventor.indexOf('|') != -1 ? row.inventor.substring(0, row.inventor.indexOf('|')) : row.inventor.substring(0, 20)) : row.inventor}</span>
 							<span class="more"> more... </span>
-							<span class="expanding"> ${row.inventor} </span>
+							<span class="expanding"> ${row.inventor.length() > 20 ? (row.inventor.indexOf('|') != -1 ? row.inventor.substring(row.inventor.indexOf('|'), row.inventor.length()) : row.inventor.substring(20, row.inventor.length())) : " "} </span>
 						</td>
-						<td>${row.ipc}</td>
-						<td>${row.upc}</td>
 						<td>
-							<span class="viewData">${row.cpc.length() > 20 ? row.cpc.substring(0, 20) + "..." : row.cpc}</span>
+							<span class="viewData">${row.ipc.length() > 20 ?  (row.ipc.indexOf(' ') != -1 ? row.ipc.substring(0, row.ipc.indexOf(' ')) : row.ipc.substring(0, 20)) : row.ipc}</span>
 							<span class="more"> more... </span>
-							<span class="expanding"> ${row.cpc} </span>
+							<span class="expanding"> ${row.ipc.length() > 20 ? (row.ipc.indexOf(' ') != -1 ? row.ipc.substring(row.ipc.indexOf(' '), row.ipc.length()) : row.ipc.substring(20, row.ipc.length())) : " "} </span>
+						</td>
+						<td>
+							<span class="viewData">${row.upc.length() > 20 ?  (row.upc.indexOf(' ') != -1 ? row.upc.substring(0, row.upc.indexOf(' ')) : row.upc.substring(0, 20)) : row.upc}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.upc.length() > 20 ? (row.upc.indexOf(' ') != -1 ? row.upc.substring(row.upc.indexOf(' '), row.upc.length()) : row.upc.substring(20, row.upc.length())) : " "} </span>
+						</td>
+						<td>
+							<span class="viewData">${row.cpc.length() > 20 ?  (row.cpc.indexOf(' ') != -1 ? row.cpc.substring(0, row.cpc.indexOf(' ')) : row.cpc.substring(0, 20)) : row.cpc}</span>
+							<span class="more"> more... </span>
+							<span class="expanding"> ${row.cpc.length() > 20 ? (row.cpc.indexOf(' ') != -1 ? row.cpc.substring(row.cpc.indexOf(' '), row.cpc.length()) : row.cpc.substring(20, row.cpc.length())) : " "} </span>
 						</td>
 						<td>${row.citedby3}</td>
 						<td>${row.cites}</td>
-						<td>
-							<span class="viewData">${row.title.length() > 80 ? row.title.substring(0, 80) + "..." : row.title}</span>
-							<span class="more"> more... </span>
-							<span class="expanding"> ${row.title} </span>
-						</td>
+						<td>${row.title}</td>
 						<td>${row.abs}</td>
 						<td>${row.first_claim}</td>
 					</tr>
