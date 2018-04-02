@@ -131,6 +131,10 @@
 		function changePassword(){
 			$("#changePassword").modal("show");
 		}
+
+		function openHelp(){
+		    $("#openHelp").modal("show");
+		}
 		function checkMatch(){
 			var npassword1=$("#newPassword").val();
 			var npassword2=$("#repeatPassword").val();
@@ -167,12 +171,21 @@
 			<button class="dropbtn">Options <asset:image src="icon.png"/></button>
 
 			<div class="dropdown-content">
-				<span class="navbar-text white-text">
-					<a> <g:link onclick="changePassword();return false;">Change Password</g:link> </a>
-				</span>
-				<span class="navbar-text white-text">
+				<div>
+					<span class="navbar-text white-text">
+					<g:link onclick="changePassword();return false;">Change Password</g:link>
+					</span>
+				</div>
+				<div>
+					<span class = "navbar-text white-text">
+					<g:link onclick="openHelp();return false;">Help</g:link>
+					</span>
+				</div>
+				<div>
+					<span class="navbar-text white-text">
 					<g:link controller="logout" action="index">Logout</g:link>
-				</span>
+					</span>
+				</div>
 			</div>
 		</div>
 
@@ -279,6 +292,27 @@
 		</div>
 	</div>
 </div>
+
+<div class="modal fade" id="openHelp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title text-center">Help</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			</div>
+			<div class="modal-body">
+				<asset:image src="help.png" style="width: 100%;"/>
+				<span>Example</span>
+				<ol>
+					<li>TTL:(virus)</li>
+					<li>((UPC:(435/6.12 OR 435/455) AND CPC:(C07K2319/81)) AND PBD:[19700101 TO 20170630])</li>
+					<li>(TA:(select OR screen AND detect OR classify NOT protein) AND PBD:(20020115))</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>
+
 
 <g:if test="${sample}">
 	<div class="container-fluid">
