@@ -39,7 +39,7 @@ class HomeController {
             "p.upc, " + "p.ipc, " + "p.cpc, " +
             "p.citedby3, " + "p.cites " +
             "FROM patentfinal p "
-    def countQuery = "SELECT distinct count(p.id) as 'total' " +
+    def countQuery = "SELECT count(distinct p.id) as 'total' " +
             "FROM patentfinal p "
 
     def index() {
