@@ -12,10 +12,9 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 	<asset:stylesheet src="bootstrap.min.css"/>
 	<asset:stylesheet src="jquery.dataTables.min.css"/>
-	%{--<asset:stylesheet src="dataTables.jqueryui.min.css"/>
+	<asset:stylesheet src="dataTables.jqueryui.min.css"/>
 	<asset:stylesheet src="datatables.min.css"/>
-	<asset:stylesheet src="dataTables.bootstrap.min.css"/>
-	<asset:stylesheet src="dataTables.foundation.min.css"/>--}%
+	%{--<asset:stylesheet src="dataTables.foundation.min.css"/>--}%
 	<asset:stylesheet src="mdb.min.css"/>
 	<asset:stylesheet src="style.css"/>
 	<asset:stylesheet src="export.css"/>

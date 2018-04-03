@@ -1,6 +1,7 @@
 package com.pathunt
 
 import com.mysql.jdbc.exceptions.MySQLQueryInterruptedException
+import grails.converters.JSON
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
 import groovy.sql.Sql
@@ -47,21 +48,39 @@ class HomeController {
             if(SpringSecurityUtils.ifAllGranted('ROLE_ADMIN')) {
                 def currentUser = springSecurityService.getCurrentUser()
                 def inputQuery = userInput.get(currentUser)
+
+                def data = 0
+                def input = ""
+                def active = false
+                def runBackgroundTask = false
+                def duration = 0
+                def sample = new ArrayList<Patent>()
+                def empty = false
+
+                if (inputQuery != null){
+                    empty = inputQuery.sample != null ? inputQuery.sample.isEmpty() : true
+                    data = !empty ? inputQuery.totalResultCount : 0
+                    input = inputQuery.query
+                    active = inputQuery.isActive
+                    duration = inputQuery.duration
+                    sample = inputQuery.sample != null ? inputQuery.sample : sample
+                }
                 if(params?.extension == "csv"){
                     def export = true
                     if(!params.max) params.max = 10
                     if (inputQuery != null){
-                        if (!inputQuery.sample.isEmpty()){
-                            exportCSV(currentUser, inputQuery)
-                            try {
-                                redirect(action: 'home')
-                            }catch (Exception e){
-                                e.printStackTrace()
+
+                        if (!inputQuery.isActive){
+                            if (!inputQuery.sample.isEmpty()){
+                                exportCSV(inputQuery)
+                            }
+                            else {
+                                flash.message = "query.running.message"
+                                flash.args = ["No results to download."]
+                                export = false
                             }
                         }
                         else {
-                            flash.message = "query.running.message"
-                            flash.args = ["No results to download."]
                             export = false
                         }
                     }
@@ -71,24 +90,12 @@ class HomeController {
                         export = false
                     }
                     if (!export){
-                        render view: 'index', model: [currentUser:currentUser]
+                        render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data, duration:duration, active:active, sample:sample]
                     }
                 }
                 else {
-                    def data = 0
-                    def input = ""
-                    def active = false
-                    def runBackgroundTask = false
-                    def duration = 0
-                    def sample = new ArrayList<Patent>()
-
                     if (inputQuery != null){
-                        def empty = inputQuery.sample != null ? inputQuery.sample.isEmpty() : true
-                        data = !empty ? inputQuery.totalResultCount : 0
-                        input = inputQuery.query
-                        active = inputQuery.isActive
-                        duration = inputQuery.duration
-                        sample = inputQuery.sample != null ? inputQuery.sample : sample
+
                         if (active){
                             flash.message = "query.running.message"
                             flash.args = ["Click CSV to download OR click STOP to run new query."]
@@ -107,7 +114,6 @@ class HomeController {
                             else if (inputQuery.error){
                                 flash.message = "sql.invalid.message"
                                 flash.args = ["Syntax error! Please check the query again"]
-
                             }
                         }
                     }
@@ -135,7 +141,7 @@ class HomeController {
         }
     }
 
-    def exportCSV(def user, Query inputQuery){
+    def exportCSV(Query inputQuery){
         response.contentType = grailsApplication.config.grails.mime.types[params.extension]
         response.setHeader("Content-disposition", "attachment; filename=output.${params.extension}")
 
@@ -143,12 +149,6 @@ class HomeController {
         Map labels = ["patent_number": "Publication Number", "title": "Title",
                       "abs":"Abstract", "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim", "inventor":"Inventor(s)", "assignee":"Assignee(s)",
                       "ipc":"IPC(s)", "upc":"UPC(s)", "cpc":"CPC(s)", "citedby3":"Cited By (3 Years)", "cites":"Cites"]
-        while (true){
-            inputQuery = userInput.get(user)
-            if (!inputQuery.isActive){
-                break
-            }
-        }
         def lists = inputQuery.result
         exportService.export(params?.extension, response.outputStream,lists, fields, labels, [:],[:])
     }
@@ -186,6 +186,7 @@ class HomeController {
         def user = springSecurityService.getCurrentUser()
         def userQuery = userInput.get(user)
         def active = false
+        def error = false
         if (userQuery != null){
             active = userQuery.isActive
             if (!active){
@@ -204,13 +205,24 @@ class HomeController {
             userQuery.isActive = true
             userInput.put(user,userQuery)
             def whereQuery = getQuery(userQuery.query)
-            if (whereQuery == "ERROR"){
-                redirect( action: 'index')
+            if (whereQuery != null){
+                if (whereQuery == "ERROR"){
+                    error = true
+                }
+                else {
+                    userQuery.whereSQLQuery = whereQuery
+                    userInput.put(user,userQuery)
+                    getResult(user, userQuery)
+                }
             }
             else {
-                userQuery.whereSQLQuery = whereQuery
+                error = true
+            }
+            if (error){
+                userQuery.isActive = false
+                userQuery.error = true
                 userInput.put(user,userQuery)
-                getResult(user, userQuery)
+                redirect( action: 'index')
             }
         }
     }
@@ -220,7 +232,8 @@ class HomeController {
         def prefixError = false
         def whereQuery = ""
         def joinQuery = ""
-
+        def error = false
+        def errorMessage = ""
         String prefix = homeService.translate(query)
 //        println "prefix = $prefix"
         def prefixVal = prefix.split(":")
@@ -243,37 +256,44 @@ class HomeController {
             println "Time Duration where query = " + cduration
 
 //        println "whereClause = $whereClause"
-            if (whereClause.contains("ERROR")){
-                prefixError = true
-                def message = whereClause.split(":")
-                println "Error message = " + message[1]
-                flash.message = "query.invalid.message"
-                flash.args = [message[1]]
-                flash.default = "invalid query"
-                queryGeneratorService.reset()
+            if (whereClause != null){
+                if (whereClause.contains("ERROR")){
+                    prefixError = true
+                    def message = whereClause.split(":")
+                    println "Error message = " + message[1]
+                    flash.message = "query.invalid.message"
+                    flash.args = [message[1]]
+                    flash.default = "invalid query"
+                    //TODO
+                    errorMessage = message[1]
+                    queryGeneratorService.reset()
+                }
+                else {
+                    whereQuery = "WHERE " + whereClause
+                    def tableList = queryGeneratorService.tables
+
+                    for (String table in tableList) {
+                        if (table == "inventor") {
+                            joinQuery += joinInventor
+                        } else if (table == "assignee") {
+                            joinQuery += joinAssignee
+                        } else if (table == "upc") {
+                            joinQuery += joinUPC
+                        } else if (table == "ipc") {
+                            joinQuery += joinIPC
+                        } else if (table == "cpc") {
+                            joinQuery += joinCPC
+                        } else if (table == "application") {
+                            joinQuery += joinApplication
+                        } else if (table == "citation") {
+                            joinQuery += joinCitation
+                        }
+                    }
+                    queryGeneratorService.reset()
+                }
             }
             else {
-                whereQuery = "WHERE " + whereClause
-                def tableList = queryGeneratorService.tables
-
-                for (String table in tableList) {
-                    if (table == "inventor") {
-                        joinQuery += joinInventor
-                    } else if (table == "assignee") {
-                        joinQuery += joinAssignee
-                    } else if (table == "upc") {
-                        joinQuery += joinUPC
-                    } else if (table == "ipc") {
-                        joinQuery += joinIPC
-                    } else if (table == "cpc") {
-                        joinQuery += joinCPC
-                    } else if (table == "application") {
-                        joinQuery += joinApplication
-                    } else if (table == "citation") {
-                        joinQuery += joinCitation
-                    }
-                }
-                queryGeneratorService.reset()
+                prefixError = true
             }
         }
         if (!prefixError){
@@ -320,25 +340,17 @@ class HomeController {
 
 //            println "data size " + data.size()
             if (!error && !sqlError /*&& !interruptedError*/){
-                if (data.size() == 0){
-                    flash.message = "result.empty.message"
-                    flash.default = "empty result"
-                }
-                else {
+                if (data.size() != 0){
                     data.each {
                         userQuery.totalResultCount = it.total
                     }
                 }
             }
             else if (error){
-                flash.message = "memory.exceeded.message"
-                flash.args = ["Out of Memory. Query is too vague"]
-                flash.default = "Resultset exceeded memory size."
+                userQuery.error = true
             }
             else if (sqlError){
-                flash.message = "sql.invalid.message"
-                flash.args = ["Syntax error! Please check the query again"]
-                flash.default = "Syntax error!"
+                userQuery.error = true
             }
             userInput.put(user,userQuery)
             println "userQuery.totalResultCount = $userQuery.totalResultCount"
@@ -368,13 +380,10 @@ class HomeController {
 //                println "d2 = " + (d2)
                     def duration = TimeCategory.minus( a2, a1 )
                     println "Time Duration limit = " + duration
-                    userQuery.duration = duration
                 }
                 if (!userQuery.error){
                     if (data.size() == 0){
                         emptyResult = true
-                        flash.message = "result.empty.message"
-                        flash.default = "empty result"
                     }
                     else {
                         data.each {
@@ -398,9 +407,7 @@ class HomeController {
                     }
                 }
                 else {
-                    flash.message = "sql.invalid.message"
-                    flash.args = ["Syntax error! Please check the query again"]
-                    flash.default = "Syntax error!"
+                    userQuery.error = true
                 }
             }
 
@@ -445,12 +452,10 @@ class HomeController {
 //                println "d2 = " + (d2)
                     def duration = TimeCategory.minus( a2, a1 )
                     println "Time Duration full query = " + duration
+                    userQuery.duration = duration
                 }
                 if (!userQuery.error && !userQuery.interrupted) {
-                    if (data.size() == 0) {
-                        flash.message = "result.empty.message"
-                        flash.default = "empty result"
-                    } else {
+                    if (data.size() != 0) {
                         data.each {
                             Patent patentdemo = new Patent()
                             patentdemo.patent_number = it.publication_number
@@ -505,7 +510,6 @@ class HomeController {
                     }
                     if (!userQuery.error){
                         if (data.size() != 0){
-
                             data.each {
                                 userQuery.queryProcessId = it.id
                             }
@@ -565,5 +569,17 @@ class HomeController {
         else {
             return 'success'
         }
+    }
+
+    def taskComplete(){
+        def user = springSecurityService.getCurrentUser()
+        def inputQuery
+        while (true){
+            inputQuery = userInput.get(user)
+            if (!inputQuery.isActive){
+                break
+            }
+        }
+        render ([true] as JSON)
     }
 }
