@@ -2,37 +2,32 @@ package com.pathunt
 
 class Query {
 
-    String query
+    String query = ""
     String whereSQLQuery = ""
     String duration = ""
     String queryProcessId = ""
-    int totalResultCount
-    boolean isActive
-    boolean error
-    boolean interrupted
+    String errorQuery = ""
+    int totalResultCount = 0
+    boolean isActive = false
+    boolean outOfMemory = false
+    boolean error = false
+    boolean interrupted = false
+    boolean stopError = false
     ArrayList<Patent> result = new ArrayList<>()
     ArrayList<Patent> sample = new ArrayList<>()
-
-    static mapping = {
-        query defaultValue: ""
-        whereSQLQuery defaultValue: ""
-        isActive defaultValue: "false"
-        error defaultValue: "false"
-        interrupted defaultValue: "false"
-        duration defaultValue: ""
-        queryProcessId defaultValue: ""
-        totalResultCount defaultValue: 0
-    }
 
     def reset(){
         query = ""
         whereSQLQuery = ""
         duration = ""
         queryProcessId = ""
+        errorQuery = ""
         totalResultCount = 0
         isActive = false
         error = false
         interrupted = false
+        stopError = false
+        outOfMemory = false
         result.clear()
         sample.clear()
     }

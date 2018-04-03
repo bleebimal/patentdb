@@ -56,20 +56,24 @@ class HomeController {
                 def duration = 0
                 def sample = new ArrayList<Patent>()
                 def empty = false
+                def queryError = false
 
                 if (inputQuery != null){
-                    empty = inputQuery.sample != null ? inputQuery.sample.isEmpty() : true
+                    empty = inputQuery.sample.isEmpty()
                     data = !empty ? inputQuery.totalResultCount : 0
                     input = inputQuery.query
                     active = inputQuery.isActive
                     duration = inputQuery.duration
-                    sample = inputQuery.sample != null ? inputQuery.sample : sample
+                    sample = inputQuery.sample
+                    if (inputQuery.error || inputQuery.interrupted || inputQuery.stopError
+                        || inputQuery.outOfMemory){
+                        queryError = true
+                    }
                 }
                 if(params?.extension == "csv"){
                     def export = true
                     if(!params.max) params.max = 10
                     if (inputQuery != null){
-
                         if (!inputQuery.isActive){
                             if (!inputQuery.sample.isEmpty()){
                                 exportCSV(inputQuery)
@@ -95,43 +99,69 @@ class HomeController {
                 }
                 else {
                     if (inputQuery != null){
-
+//                        println "active = $active"
+//                        println "runBackgroundTask = $runBackgroundTask"
                         if (active){
-                            flash.message = "query.running.message"
-                            flash.args = ["Click CSV to download OR click STOP to run new query."]
-                            if (!inputQuery.error && (inputQuery.result == null || inputQuery?.result?.isEmpty())){
+//                            println "queryError = $queryError"
+//                            println "empty = $empty"
+//                            println "inputQuery = $inputQuery.result.isEmpty()"
+                            if (!queryError && !empty && inputQuery.result.isEmpty()){
                                 runBackgroundTask = true
                             }
-                        }
-                        else if(!empty){
-                            flash.clear()
+                            else if (queryError || empty) {
+                                if (empty){
+                                    flash.message = "result.empty.message"
+                                }
+                                else if (queryError) {
+                                    inputQuery.isActive = false
+                                    userInput.put(currentUser, inputQuery)
+                                    active = false
+
+                                    if (inputQuery.interrupted) {
+//                                        println "Here ..."
+                                        flash.message = "sql.interrupt.message"
+                                        flash.args = ["Query Execution Interrupted"]
+                                    } else if (inputQuery.outOfMemory) {
+                                        flash.message = "sql.invalid.message"
+                                        flash.args = ["Memory Full. Refine Search!!"]
+                                    }
+                                    else if (inputQuery.stopError){
+                                        flash.message = "sql.invalid.message"
+                                        flash.args = ["Unable to stop the query execution. Please, refresh and try again."]
+                                        flash.default = "Unable to stop the query execution."
+                                    }
+                                    else {
+                                        flash.message = "sql.invalid.message"
+                                        flash.args = ["SQL Syntax Error!!"]
+                                    }
+                                }
+                            }
+                            else {
+                                flash.message = "query.running.message"
+                                flash.args = ["Click CSV to download OR click STOP to run new query."]
+                            }
                         }
                         else {
-                            if (inputQuery.interrupted){
-                                flash.message = "sql.interrupt.message"
-                                flash.args = ["Query Execution Interrupted"]
-                            }
-                            else if (inputQuery.error){
+                            if (inputQuery.errorQuery != ""){
                                 flash.message = "sql.invalid.message"
-                                flash.args = ["Syntax error! Please check the query again"]
+                                flash.args = [inputQuery.errorQuery]
+                                flash.default = "Incorrect Syntax"
                             }
                         }
                     }
                     if (runBackgroundTask){
                         def a = task {
-                            def success = false
-                            try {
-                                println "Background task Started"
-                                success = backgroundTask(currentUser, inputQuery)
-                                println "Background task Stopped"
-                            }catch (Exception e){
-//                                println "Error: "
-                                println e.printStackTrace()
-                            }finally{
-//                                render view: 'index', model: [currentUser: currentUser, sqlQuery: input, data: data, duration: duration, active: active, sample: sample]
-                            }
-                        }
+                                    try {
+                                        println "Background task Started"
+                                        backgroundTask(currentUser, inputQuery)
+                                        println "Background task Stopped"
+                                    }catch (Exception e){
+        //                                println "Error: "
+                                    }
+                                }
                     }
+//                    println "runBackgroundTask = $runBackgroundTask"
+//                    println "active = $active"
                     render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data, duration:duration, active:active, sample:sample]
                 }
             }
@@ -163,22 +193,18 @@ class HomeController {
     def stop(){
         def currentUser = springSecurityService.getCurrentUser()
         def runningQuery = userInput.get(currentUser)
-        println runningQuery
         def sql = new Sql(dataSource)
         def query = killQuery + runningQuery?.queryProcessId
         try {
+            runningQuery.interrupted = true
             sql.execute(query)
         }catch (SQLException e){
-            flash.message = "sql.invalid.message"
-            flash.args = ["Unable to stop the query execution. Please, refresh and try again."]
-            flash.default = "Unable to stop the query execution."
-            runningQuery.error = true
-            userInput.put(currentUser, runningQuery)
+            runningQuery.stopError = true
         }
         finally{
             sql.close()
+            userInput.put(currentUser, runningQuery)
         }
-
         redirect( action: 'index')
     }
 
@@ -206,8 +232,14 @@ class HomeController {
             userInput.put(user,userQuery)
             def whereQuery = getQuery(userQuery.query)
             if (whereQuery != null){
-                if (whereQuery == "ERROR"){
+                def whereQueryVal = whereQuery.split(":")
+                if (whereQueryVal[0] == "ERROR"){
                     error = true
+                    userQuery.errorQuery = "Query: " + whereQueryVal[1]
+                }
+                else if (whereQueryVal[0] == "Error"){
+                    error = true
+                    userQuery.errorQuery = "CPC Value: " + whereQueryVal[1]
                 }
                 else {
                     userQuery.whereSQLQuery = whereQuery
@@ -228,11 +260,10 @@ class HomeController {
     }
 
     def getQuery(String query){
-        def c1 = new Date()
+//        def c1 = new Date()
         def prefixError = false
         def whereQuery = ""
         def joinQuery = ""
-        def error = false
         def errorMessage = ""
         String prefix = homeService.translate(query)
 //        println "prefix = $prefix"
@@ -241,31 +272,25 @@ class HomeController {
 
         if (prefixVal[0] == "Error"){
             prefixError = true
-            flash.message = "cpc.invalid.message"
-            flash.args = [prefixVal[1]]
-            flash.default = "Incorrect CPC value"
+            errorMessage = prefix
         }
         else {
             println "preQuery = $prefix"
             queryGeneratorService.setPrefixQuery(prefix)
             def whereClause = queryGeneratorService.parseQuery()
 
-            def c2 = new Date()
-//                println "d2 = " + (d2)
-            def cduration = TimeCategory.minus( c2, c1 )
-            println "Time Duration where query = " + cduration
+//            def c2 = new Date()
+////                println "d2 = " + (d2)
+//            def cduration = TimeCategory.minus( c2, c1 )
+//            println "Time Duration where query = " + cduration
 
 //        println "whereClause = $whereClause"
             if (whereClause != null){
                 if (whereClause.contains("ERROR")){
                     prefixError = true
                     def message = whereClause.split(":")
-                    println "Error message = " + message[1]
-                    flash.message = "query.invalid.message"
-                    flash.args = [message[1]]
-                    flash.default = "invalid query"
-                    //TODO
-                    errorMessage = message[1]
+//                    println "Error message = " + message[1]
+                    errorMessage = whereClause
                     queryGeneratorService.reset()
                 }
                 else {
@@ -300,7 +325,8 @@ class HomeController {
             return joinQuery + whereQuery
         }
         else {
-            return "ERROR"
+//            println "errorMessage = $errorMessage"
+            return errorMessage
         }
     }
 
@@ -362,7 +388,6 @@ class HomeController {
             def samples = new ArrayList<Patent>()
 
             if (!userQuery.error) {
-                Thread.sleep(50)
                 def sql = new Sql(dataSource)
                 def data = []
                 def query = selectQuery + userQuery.whereSQLQuery + " LIMIT 100 -- limit " + user
@@ -418,9 +443,6 @@ class HomeController {
             redirect( action: 'index')
         }
 
-        onError([p1,p2]) { Throwable t ->
-            println "An error occured ${t.message}"
-        }
         waitAll(p1, p2)
     }
 
@@ -429,8 +451,8 @@ class HomeController {
         try {
             def p3 = task {
                 println " Task 3 started"
+
                 def results = new ArrayList<Patent>()
-                def interruptedError = false
                 def sql = new Sql(dataSource)
                 def data = []
                 def query = selectQuery + userQuery.whereSQLQuery + " -- " + user
@@ -476,7 +498,6 @@ class HomeController {
                         }
                     }
                 }
-
                 userQuery.result = results
                 userQuery.isActive = false
                 userInput.put(user, userQuery)
