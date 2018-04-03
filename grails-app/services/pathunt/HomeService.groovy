@@ -17,14 +17,10 @@ class HomeService {
     def translate(String custQuery) {
 //        println "custQuery = $custQuery"
         custQuery = custQuery.replace("( ","(")
-                             .replace("[ ","[")
-//                             .replace("(  ","(")
-//                             .replace("(   ","(")
-                             .replace(" )",")")
-                             .replace(" ]","]")
-//                             .replace("  )",")")
-//                             .replace("   )",")")
-//        println "custQuery = $custQuery"
+                         .replace("[ ","[")
+                         .replace(" )",")")
+                         .replace(" ]","]")
+    //        println "custQuery = $custQuery"
         processBrackets(custQuery)
 //        StringBuilder val = new StringBuilder()
 //        for (String st: operandExpressions){
@@ -58,8 +54,6 @@ class HomeService {
 //        println("val after prefix= " + prefix)
             return prefix.trim()
         }
-
-
     }
 
     private String replaceSpace(String expression){

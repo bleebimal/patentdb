@@ -98,8 +98,19 @@
 			$('.runBtn').attr("disabled","disabled");
             $('.csv').attr("onclick","return false;").addClass("disabled");
 			removeMultSpace();
-			return update();
-
+			if(update()){
+			    $valid = validate();
+			    if(!$valid){
+                    $('#errorMessage').text('Syntax error in Query. Click on HELP menu in OPTIONS to view examples.');
+                    $('.clrBtn').removeAttr("onclick").removeClass("disabled");
+                    $('.runBtn').removeAttr("disabled");
+                    $('#loading').hide();
+                }
+				return $valid;
+			}
+			else {
+			    return false;
+			}
 		}
 		function update() {
 			$input = $('#input').val();
@@ -113,7 +124,10 @@
 //                console.log($errors);
 				$errorMessage = $errors[1] + ' (char at ' + $errors[2].split("\n")[0] + ')';
 				$('#errorMessage').text($errorMessage || '');
-				return false;
+                $('.clrBtn').removeAttr("onclick").removeClass("disabled");
+                $('.runBtn').removeAttr("disabled");
+                $('#loading').hide();
+                return false;
 			}
 		}
 
@@ -126,6 +140,11 @@
 			$str = $str.replace(/\)N/g,') N');
 			$('#input').val($str);
 //            console.log('second: '+ $str);
+        }
+        function validate(){
+            $str = $('#input').val();
+            $patt = /^((([( \[])*[A-Z]+:)*(([ (\[])+([^~|(\[)\]^:\n\r])+([ )\]])+ *(AND |OR |NOT )*)+\)*)+$/;
+            return $patt.test($str);
 		}
 
 		function changePassword(){
@@ -306,7 +325,7 @@
 				<ol>
 					<li>TTL:(virus)</li>
 					<li>((UPC:(435/6.12 OR 435/455) AND CPC:(C07K2319/81)) AND PBD:[19700101 TO 20170630])</li>
-					<li>(TA:(select OR screen AND detect OR classify NOT protein) AND PBD:(20020115))</li>
+					<li>(TA:((select OR screen AND detect OR classify) NOT (protein)) AND PBD:(20020115))</li>
 				</ol>
 			</div>
 		</div>
