@@ -10,8 +10,8 @@ class Query {
     boolean isActive
     boolean error
     boolean interrupted
-    ArrayList<Patent> result
-    ArrayList<Patent> sample
+    ArrayList<Patent> result = new ArrayList<>()
+    ArrayList<Patent> sample = new ArrayList<>()
 
     static mapping = {
         query defaultValue: ""
