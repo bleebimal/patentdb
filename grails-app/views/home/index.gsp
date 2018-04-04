@@ -62,26 +62,32 @@
             $('.csv').attr("onclick","return false;").addClass("disabled");
             $('.clrBtn').hide();
             $('#loading').hide();
+            $('.data').hide();
 			<g:if test="${active}">
             	$('.runBtn').attr("disabled","disabled");
 				var URL="${createLink(controller:'home',action:'taskComplete')}";
 				$.ajax({
 					url:URL,
 					success: function(resp){
-						console.log(resp);
+						console.log("hereerer " + resp);
 						if(resp[0]){
                             $('.runBtn').removeAttr("disabled","disabled");
 							$('.csv').removeAttr("onclick").removeClass("disabled");
                             $('.stpBtn').hide();
                             $('#errorMessage').text("Click CSV to download.");
                             $('.clrBtn').show();
+                            $('.data').show();
+                            $('#count').text(resp[1]);
                         }
 					}
 				});
 			</g:if>
 			<g:else>
 				<g:if test="${duration}">
-            		$('.csv').removeAttr("onclick").removeClass("disabled");
+                    $('.data').show();
+                    <g:if test="${data}">
+                        $('.csv').removeAttr("onclick").removeClass("disabled");
+                    </g:if>
 				</g:if>
             	$('.clrBtn').show();
 			</g:else>
@@ -97,6 +103,7 @@
 			$('.clrBtn').attr("onclick","return false;").addClass("disabled");
 			$('.runBtn').attr("disabled","disabled");
             $('.csv').attr("onclick","return false;").addClass("disabled");
+            $('.data').hide();
 			removeMultSpace();
 			if(update()){
 			    $valid = validate();
@@ -224,21 +231,19 @@
 		<div class="col-md-1" id="loading" style="width: 30px; height: 30px;">
 			<asset:image src="loading.gif"/>
 		</div>
-		<g:if test="${data}">
-			<div class="col-md-1">
-				<export:formats formats="['csv']" />
-				%{--<g:hiddenField name="active" id="active" value="${active}"/>
-                <g:hiddenField name="first" id="first" value="0"/>--}%
-			</div>
-			<div class="col-md-3" style="margin-top: 10px;">
-				<span> Total No. of Patents: ${data} </span>
-			</div>
-		</g:if>
-		<g:if test="${duration}">
+        <div class="col-md-1 data">
+            <export:formats formats="['csv']" />
+            %{--<g:hiddenField name="active" id="active" value="${active}"/>
+            <g:hiddenField name="first" id="first" value="0"/>--}%
+        </div>
+        <div class="col-md-3 data" style="margin-top: 10px;">
+            <span> Total No. of Patents: <span id="count">${data}</span> </span>
+        </div>
+		%{--<g:if test="${duration}">
 			<div class="col-md-3" id="duration" style="margin-top: 10px;">
 				<span> Time taken: ${duration} </span>
 			</div>
-		</g:if>
+		</g:if>--}%
 	</div>
 	<div class="row">
 		<div class="col-md-6" style="color: #B22222;" id="errorMessage">
