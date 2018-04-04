@@ -105,6 +105,7 @@ class HomeController {
 //                            println "queryError = $queryError"
 //                            println "empty = $empty"
 //                            println "inputQuery = $inputQuery.result.isEmpty()"
+//                            println "Interrupted Index ... " + inputQuery.interrupted
                             if (!queryError && !empty && inputQuery.result.isEmpty()){
                                 runBackgroundTask = true
                             }
@@ -118,9 +119,9 @@ class HomeController {
                                     active = false
 
                                     if (inputQuery.interrupted) {
-//                                        println "Here ..."
+//                                        println "Interrupted Index ..."
                                         flash.message = "sql.interrupt.message"
-                                        flash.args = ["Query Execution Interrupted"]
+                                        flash.args = ["File Preparation Interrupted!!"]
                                     } else if (inputQuery.outOfMemory) {
                                         flash.message = "sql.invalid.message"
                                         flash.args = ["Memory Full. Refine Search!!"]
@@ -136,10 +137,6 @@ class HomeController {
                                     }
                                 }
                             }
-                            else {
-                                flash.message = "query.running.message"
-                                flash.args = ["Click CSV to download OR click STOP to run new query."]
-                            }
                         }
                         else {
                             if (inputQuery.errorQuery != ""){
@@ -150,11 +147,14 @@ class HomeController {
                         }
                     }
                     if (runBackgroundTask){
+                        flash.message = "query.running.message"
+                        flash.args = ["Preparing result for download. Click STOP to run new query."]
+
                         def a = task {
                                     try {
-                                        println "Background task Started"
+//                                        println "Background task Started"
                                         backgroundTask(currentUser, inputQuery)
-                                        println "Background task Stopped"
+//                                        println "Background task Stopped"
                                     }catch (Exception e){
         //                                println "Error: "
                                     }
@@ -162,6 +162,8 @@ class HomeController {
                     }
 //                    println "runBackgroundTask = $runBackgroundTask"
 //                    println "active = $active"
+//                    println "Interrupted Index ... "
+
                     render view: 'index', model: [currentUser:currentUser, sqlQuery:input, data:data, duration:duration, active:active, sample:sample]
                 }
             }
@@ -191,6 +193,7 @@ class HomeController {
     }
 
     def stop(){
+//        println "here"
         def currentUser = springSecurityService.getCurrentUser()
         def runningQuery = userInput.get(currentUser)
         def sql = new Sql(dataSource)
@@ -205,6 +208,8 @@ class HomeController {
             sql.close()
             userInput.put(currentUser, runningQuery)
         }
+//        println "Interrupted Index ... " + runningQuery.interrupted
+//        println " stopped ........................."
         redirect( action: 'index')
     }
 
@@ -244,7 +249,7 @@ class HomeController {
                 else {
                     userQuery.whereSQLQuery = whereQuery
                     userInput.put(user,userQuery)
-                    getResult(user, userQuery)
+                    getPreview(user, userQuery)
                 }
             }
             else {
@@ -330,61 +335,11 @@ class HomeController {
         }
     }
 
-    def getResult(def user, Query userQuery){
+    def getPreview(def user, Query userQuery){
         def sqlError = false
-        def error = false
-        def emptyResult = false
 
         def p1 = task {
-
-            println " Task 1 started"
-            def data = []
-
-            def query = countQuery + userQuery.whereSQLQuery + " -- count " + user
-            println "count query " + query
-
-            def d1, d2
-            d1 = new Date()
-            def sql = new Sql(dataSource)
-
-            try {
-//                println "d1 = " + (d1)
-                data = sql.rows(query)
-            }catch (OutOfMemoryError e){
-                userQuery.error = true
-                error = true
-            }catch (SQLException a){
-                userQuery.error = true
-                sqlError = true
-            }finally{
-                sql.close()
-                d2 = new Date()
-//                println "d2 = " + (d2)
-                def duration = TimeCategory.minus( d2, d1 )
-                println "Time Duration count = " + duration
-            }
-
-//            println "data size " + data.size()
-            if (!error && !sqlError /*&& !interruptedError*/){
-                if (data.size() != 0){
-                    data.each {
-                        userQuery.totalResultCount = it.total
-                    }
-                }
-            }
-            else if (error){
-                userQuery.error = true
-            }
-            else if (sqlError){
-                userQuery.error = true
-            }
-            userInput.put(user,userQuery)
-            println "userQuery.totalResultCount = $userQuery.totalResultCount"
-            println " Task 1 stopped"
-        }
-
-        def p2 = task {
-            println " Task 2 started"
+//            println " Task 1 started"
             def samples = new ArrayList<Patent>()
 
             if (!userQuery.error) {
@@ -407,10 +362,7 @@ class HomeController {
                     println "Time Duration limit = " + duration
                 }
                 if (!userQuery.error){
-                    if (data.size() == 0){
-                        emptyResult = true
-                    }
-                    else {
+                    if (data.size() != 0){
                         data.each {
                             Patent patentdemo = new Patent()
                             patentdemo.patent_number = it.publication_number
@@ -430,6 +382,24 @@ class HomeController {
                             samples.add(patentdemo)
                         }
                     }
+                    /*else {
+                        Patent patentdemo = new Patent()
+                        patentdemo.patent_number = "0000000"
+                        patentdemo.title = "Sample Title"
+                        patentdemo.abs = "Sample Abstract"
+                        patentdemo.year = "2018"
+                        patentdemo.date = "2018-04-03"
+                        patentdemo.first_claim = "Sample Claim"
+                        patentdemo.assignee = "Sample Assignee"
+                        patentdemo.inventor = "Sample Inventor"
+                        patentdemo.ipc = "Sample IPC"
+                        patentdemo.upc = "Sample UPC"
+                        patentdemo.cpc = "Sample CPC"
+                        patentdemo.citedby3 = "Sample cited By"
+                        patentdemo.cites = "Sample Cites"
+
+                        samples.add(patentdemo)
+                    }*/
                 }
                 else {
                     userQuery.error = true
@@ -439,18 +409,17 @@ class HomeController {
             userQuery.sample = samples
 //            userQuery.isActive = false
             userInput.put(user,userQuery)
-            println " Task 2 stopped"
+//            println " Task 1 stopped"
             redirect( action: 'index')
         }
 
-        waitAll(p1, p2)
+        waitAll(p1)
     }
 
     def backgroundTask(def user, Query userQuery){
-        def success = false
         try {
             def p3 = task {
-                println " Task 3 started"
+//                println " Task 2 started"
 
                 def results = new ArrayList<Patent>()
                 def sql = new Sql(dataSource)
@@ -461,7 +430,6 @@ class HomeController {
                 a1 = new Date()
                 try {
                     data = sql.rows(query)
-                    success = true
                 }catch(MySQLQueryInterruptedException c){
                     userQuery.interrupted = true
                     userQuery.error = true
@@ -497,18 +465,37 @@ class HomeController {
                             results.add(patentdemo)
                         }
                     }
+                    /*else {
+                        Patent patentdemo = new Patent()
+                        patentdemo.patent_number = "0000000"
+                        patentdemo.title = "Sample Title"
+                        patentdemo.abs = "Sample Abstract"
+                        patentdemo.year = "2018"
+                        patentdemo.date = "2018-04-03"
+                        patentdemo.first_claim = "Sample Claim"
+                        patentdemo.assignee = "Sample Assignee"
+                        patentdemo.inventor = "Sample Inventor"
+                        patentdemo.ipc = "Sample IPC"
+                        patentdemo.upc = "Sample UPC"
+                        patentdemo.cpc = "Sample CPC"
+                        patentdemo.citedby3 = "Sample cited By"
+                        patentdemo.cites = "Sample Cites"
+
+                        results.add(patentdemo)
+                    }*/
                 }
                 userQuery.result = results
+                userQuery.totalResultCount = results.size()
                 userQuery.isActive = false
                 userInput.put(user, userQuery)
-                println " Task 3 stopped"
+//                println " Task 2 stopped"
             }
 
             def p4 = task {
-                println " Task 4 started"
+//                println " Task 3 started"
 
                 if (!userQuery.error) {
-                    Thread.sleep(500)
+                    Thread.sleep(100)
                     def sql = new Sql(dataSource)
                     def data = []
                     def whClause = userQuery.whereSQLQuery.replace("'","\\'") +
@@ -519,7 +506,6 @@ class HomeController {
                     try {
 //                println "getProcessIdQuery = $query"
                         data = sql.rows(query)
-                        success = true
                     }catch (SQLException a){
                         userQuery.error = true
                     }finally{
@@ -527,7 +513,7 @@ class HomeController {
                         a2 = new Date()
 //                println "d2 = " + (d2)
                         def duration = TimeCategory.minus( a2, a1 )
-                        println "Time Duration query id = " + duration
+//                        println "Time Duration query id = " + duration
                     }
                     if (!userQuery.error){
                         if (data.size() != 0){
@@ -538,14 +524,14 @@ class HomeController {
                     }
                 }
                 userInput.put(user,userQuery)
-                println "userQuery.queryProcessId = $userQuery.queryProcessId"
-                println " Task 4 stopped"
+//                println "userQuery.queryProcessId = $userQuery.queryProcessId"
+//                println " Task 3 stopped"
             }
             waitAll(p3, p4)
         }catch (Exception e){
 //            println e.printStackTrace()
         }
-        return success
+//        println "Interrupted Index ... " + userQuery.interrupted
     }
 
 
@@ -601,6 +587,6 @@ class HomeController {
                 break
             }
         }
-        render ([true] as JSON)
+        render ([true, inputQuery.totalResultCount] as JSON)
     }
 }
