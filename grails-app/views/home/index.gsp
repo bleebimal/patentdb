@@ -55,14 +55,14 @@
 	</style>
 	<script type="application/javascript">
         $(document).ready(function () {
+            $('.clrBtn').hide();
+            $('.data').hide();
+            $('#loading').hide();
+            $('.csv').attr("onclick","return false;").addClass("disabled");
             $('#sample').DataTable();
             $('#sample_length').hide();
             $('#sample_filter').hide();
             $('#sample_info').hide();
-            $('.csv').attr("onclick","return false;").addClass("disabled");
-            $('.clrBtn').hide();
-            $('#loading').hide();
-            $('.data').hide();
 			<g:if test="${active}">
             	$('.runBtn').attr("disabled","disabled");
 				var URL="${createLink(controller:'home',action:'taskComplete')}";
@@ -71,25 +71,26 @@
 					success: function(resp){
 						console.log("hereerer " + resp);
 						if(resp[0]){
-                            $('.runBtn').removeAttr("disabled","disabled");
-							$('.csv').removeAttr("onclick").removeClass("disabled");
                             $('.stpBtn').hide();
-                            $('#errorMessage').text("Click CSV to download.");
                             $('.clrBtn').show();
+                            $('.runBtn').removeAttr("disabled","disabled");
+                            $('.csv').removeAttr("onclick").removeClass("disabled");
+                            $('#errorMessage').text("Click CSV to download.");
                             $('.data').show();
                             $('#count').text(resp[1]);
+                            $('#duration').text(resp[2]);
                         }
 					}
 				});
 			</g:if>
 			<g:else>
+            	$('.clrBtn').show();
 				<g:if test="${duration}">
                     $('.data').show();
                     <g:if test="${data}">
                         $('.csv').removeAttr("onclick").removeClass("disabled");
                     </g:if>
 				</g:if>
-            	$('.clrBtn').show();
 			</g:else>
         });
 
@@ -100,11 +101,12 @@
 		function beforeSubmit() {
             $('#loading').show();
             $('#errorMessage').text("");
-			$('.clrBtn').attr("onclick","return false;").addClass("disabled");
-			$('.runBtn').attr("disabled","disabled");
+            $('.clrBtn').attr("onclick","return false;").addClass("disabled");
+            $('.runBtn').attr("disabled","disabled");
             $('.csv').attr("onclick","return false;").addClass("disabled");
             $('.data').hide();
-			removeMultSpace();
+            $('#sampleTable').hide();
+            removeMultSpace();
 			if(update()){
 			    $valid = validate();
 			    if(!$valid){
@@ -237,13 +239,11 @@
             <g:hiddenField name="first" id="first" value="0"/>--}%
         </div>
         <div class="col-md-3 data" style="margin-top: 10px;">
-            <span> Total No. of Patents: <span id="count">${data}</span> </span>
+            <span> Total No. of Patents: <span id="count">${data}</span></span>
         </div>
-		%{--<g:if test="${duration}">
-			<div class="col-md-3" id="duration" style="margin-top: 10px;">
-				<span> Time taken: ${duration} </span>
-			</div>
-		</g:if>--}%
+		<div class="col-md-3 data" style="margin-top: 10px;">
+			<span> Time taken: <span id="duration">${duration}</span></span>
+		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-6" style="color: #B22222;" id="errorMessage">
