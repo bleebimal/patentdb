@@ -151,14 +151,14 @@ class HomeController {
                         flash.args = ["Preparing result for download. Click STOP to run new query."]
 
                         def a = task {
-                                    try {
+                            try {
 //                                        println "Background task Started"
-                                        backgroundTask(currentUser, inputQuery)
+                                backgroundTask(currentUser, inputQuery)
 //                                        println "Background task Stopped"
-                                    }catch (Exception e){
-        //                                println "Error: "
-                                    }
-                                }
+                            }catch (Exception e){
+//                                println "Error: "
+                            }
+                        }
                     }
 //                    println "runBackgroundTask = $runBackgroundTask"
 //                    println "active = $active"
@@ -336,84 +336,78 @@ class HomeController {
     }
 
     def getPreview(def user, Query userQuery){
-        def sqlError = false
 
-        def p1 = task {
 //            println " Task 1 started"
-            def samples = new ArrayList<Patent>()
+        def samples = new ArrayList<Patent>()
 
-            if (!userQuery.error) {
-                def sql = new Sql(dataSource)
-                def data = []
-                def query = selectQuery + userQuery.whereSQLQuery + " LIMIT 100 -- limit " + user
-                println "limit query = $query"
-                def a1, a2
-                a1 = new Date()
-                try {
-                    data = sql.rows(query)
-                } catch (SQLException a) {
-                    sqlError = true
-                    userQuery.error = true
-                } finally {
-                    sql.close()
-                    a2 = new Date()
+        if (!userQuery.error) {
+            def sql = new Sql(dataSource)
+            def data = []
+            def query = selectQuery + userQuery.whereSQLQuery + " LIMIT 100 -- limit " + user
+            println "limit query = $query"
+            def a1, a2
+            a1 = new Date()
+            try {
+                data = sql.rows(query)
+            } catch (SQLException a) {
+                userQuery.error = true
+            } finally {
+                sql.close()
+                a2 = new Date()
 //                println "d2 = " + (d2)
-                    def duration = TimeCategory.minus( a2, a1 )
-                    println "Time Duration limit = " + duration
-                }
-                if (!userQuery.error){
-                    if (data.size() != 0){
-                        data.each {
-                            Patent patentdemo = new Patent()
-                            patentdemo.patent_number = it.publication_number
-                            patentdemo.title = it.title
-                            patentdemo.abs = it.abstract
-                            patentdemo.year = it.year
-                            patentdemo.date = it.date
-                            patentdemo.first_claim = it.first_claim
-                            patentdemo.assignee = it.assignees
-                            patentdemo.inventor = it.inventors
-                            patentdemo.ipc = it.ipc
-                            patentdemo.upc = it.upc
-                            patentdemo.cpc = it.cpc
-                            patentdemo.citedby3 = it.citedby3
-                            patentdemo.cites = it.cites
-
-                            samples.add(patentdemo)
-                        }
-                    }
-                    /*else {
+                def duration = TimeCategory.minus( a2, a1 )
+                println "Time Duration limit = " + duration
+            }
+            if (!userQuery.error){
+                if (data.size() != 0){
+                    data.each {
                         Patent patentdemo = new Patent()
-                        patentdemo.patent_number = "0000000"
-                        patentdemo.title = "Sample Title"
-                        patentdemo.abs = "Sample Abstract"
-                        patentdemo.year = "2018"
-                        patentdemo.date = "2018-04-03"
-                        patentdemo.first_claim = "Sample Claim"
-                        patentdemo.assignee = "Sample Assignee"
-                        patentdemo.inventor = "Sample Inventor"
-                        patentdemo.ipc = "Sample IPC"
-                        patentdemo.upc = "Sample UPC"
-                        patentdemo.cpc = "Sample CPC"
-                        patentdemo.citedby3 = "Sample cited By"
-                        patentdemo.cites = "Sample Cites"
+                        patentdemo.patent_number = it.publication_number
+                        patentdemo.title = it.title
+                        patentdemo.abs = it.abstract
+                        patentdemo.year = it.year
+                        patentdemo.date = it.date
+                        patentdemo.first_claim = it.first_claim
+                        patentdemo.assignee = it.assignees
+                        patentdemo.inventor = it.inventors
+                        patentdemo.ipc = it.ipc
+                        patentdemo.upc = it.upc
+                        patentdemo.cpc = it.cpc
+                        patentdemo.citedby3 = it.citedby3
+                        patentdemo.cites = it.cites
 
                         samples.add(patentdemo)
-                    }*/
+                    }
                 }
-                else {
-                    userQuery.error = true
-                }
-            }
+                /*else {
+                    Patent patentdemo = new Patent()
+                    patentdemo.patent_number = "0000000"
+                    patentdemo.title = "Sample Title"
+                    patentdemo.abs = "Sample Abstract"
+                    patentdemo.year = "2018"
+                    patentdemo.date = "2018-04-03"
+                    patentdemo.first_claim = "Sample Claim"
+                    patentdemo.assignee = "Sample Assignee"
+                    patentdemo.inventor = "Sample Inventor"
+                    patentdemo.ipc = "Sample IPC"
+                    patentdemo.upc = "Sample UPC"
+                    patentdemo.cpc = "Sample CPC"
+                    patentdemo.citedby3 = "Sample cited By"
+                    patentdemo.cites = "Sample Cites"
 
-            userQuery.sample = samples
-//            userQuery.isActive = false
-            userInput.put(user,userQuery)
-//            println " Task 1 stopped"
-            redirect( action: 'index')
+                    samples.add(patentdemo)
+                }*/
+            }
+            else {
+                userQuery.error = true
+            }
         }
 
-        waitAll(p1)
+        userQuery.sample = samples
+//            userQuery.isActive = false
+        userInput.put(user,userQuery)
+//            println " Task 1 stopped"
+        redirect( action: 'index')
     }
 
     def backgroundTask(def user, Query userQuery){
@@ -433,6 +427,8 @@ class HomeController {
                 }catch(MySQLQueryInterruptedException c){
                     userQuery.interrupted = true
                     userQuery.error = true
+                }catch(OutOfMemoryError o){
+                    userQuery.outOfMemory = true
                 }
                 catch (SQLException a) {
                     userQuery.error = true
@@ -587,6 +583,6 @@ class HomeController {
                 break
             }
         }
-        render ([true, inputQuery.totalResultCount] as JSON)
+        render ([true, inputQuery.totalResultCount, inputQuery.duration] as JSON)
     }
 }
