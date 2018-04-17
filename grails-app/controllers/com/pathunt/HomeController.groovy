@@ -19,19 +19,19 @@ class HomeController {
     def exportService
     def grailsApplication
 //    def joinInventor = "INNER JOIN patent_inventornew pi ON p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
-    def joinInventor = "INNER JOIN patent_inventor pi ON p.country = pi.country AND p.id = pi.patent_id INNER JOIN inventor ir ON pi.inventor_id = ir.id "
+    def joinInventor = "INNER JOIN patent_inventornew pi ON p.country = pi.country AND p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
 //    def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
 //    def joinAssignee = "INNER JOIN patent_assigneenew pa ON p.id = pa.patent_id INNER JOIN assigneenew a ON pa.assignee_id = a.uuid "
-    def joinAssignee = "INNER JOIN patent_assignee pa ON p.country = pa.patent_country AND p.id = pa.patent_id INNER JOIN assignee a ON pa.assignee_id = a.id "
+    def joinAssignee = "INNER JOIN patent_assigneenew pa ON p.country = pa.patent_country AND p.id = pa.patent_id INNER JOIN assigneenew a ON pa.assignee_id = a.id "
 //    def joinAssignee = "INNER JOIN assigneefinal a ON p.country = a.patent_country AND p.id = a.patent_id "
-    def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
+    def joinUPC = "INNER JOIN uspcnew u ON p.country = u.patent_country AND p.id = u.patent_id "
 //    def joinUPC = "INNER JOIN uspcnew u ON p.id = u.patent_id "
-    def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
+    def joinIPC = "INNER JOIN ipcrnew i ON p.country = i.patent_country AND p.id = i.patent_id "
 //    def joinIPC = "INNER JOIN ipcrnew i ON p.id = i.patent_id "
-    def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
+    def joinCPC = "INNER JOIN cpcnew c ON p.country = c.patent_country AND p.id = c.patent_id "
 //    def joinCPC = "INNER JOIN cpcnew c ON p.id = c.patent_id "
-    def joinApplication = "INNER JOIN application ap ON p.country = ap.patent_country AND p.id = ap.patent_id "
-    def joinCitation = "INNER JOIN uspatentcitation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
+    def joinApplication = "INNER JOIN applicationnew ap ON p.country = ap.patent_country AND p.id = ap.patent_id "
+    def joinCitation = "INNER JOIN uspatentcitationnew ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
 //    def joinLocation = "INNER JOIN location l ON p.country = l.patent_country AND p.id = l.patent_id "
     def killQuery = "Kill query "
     def getProcessIdQuery = "SELECT id FROM INFORMATION_SCHEMA.processlist where Info LIKE '%"
@@ -43,7 +43,7 @@ class HomeController {
             "p.assignees, " +
             "p.upcs, " + "p.ipcs, " + "p.cpcs, " +
             "p.citedby3, " + "p.cites " +
-            "FROM patentfinal p "
+            "FROM patentfinalnew p "
     def countQuery = "SELECT count(distinct p.id) as 'total' " +
             "FROM patentfinal p "
 
@@ -378,9 +378,9 @@ class HomeController {
                         patentdemo.first_claim = it.first_claim
                         patentdemo.assignee = it.assignees
                         patentdemo.inventor = it.inventors
-                        patentdemo.ipc = it.ipc
-                        patentdemo.upc = it.upc
-                        patentdemo.cpc = it.cpc
+                        patentdemo.ipc = it.ipcs
+                        patentdemo.upc = it.upcs
+                        patentdemo.cpc = it.cpcs
                         patentdemo.citedby3 = it.citedby3
                         patentdemo.cites = it.cites
 

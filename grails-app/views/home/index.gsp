@@ -354,7 +354,7 @@
 					<th>All_UPC(s)</th>
 					<th>All_CPC(s)</th>
 					<th>Cited By</th>
-					<th>Cites Count</th>
+					<th>Cites</th>
 					<th>Title</th>
 					<th>Abstract</th>
 					<th>First Claim</th>
