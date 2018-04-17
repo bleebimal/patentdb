@@ -18,14 +18,18 @@ class HomeController {
     def dataSource
     def exportService
     def grailsApplication
-    def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
-    def joinAssignee = "INNER JOIN assigneefinal a ON p.country = a.patent_country AND p.id = a.patent_id "
-//    def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
-    def joinUPC = "INNER JOIN uspcnew u ON p.id = u.patent_id "
-//    def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
-    def joinIPC = "INNER JOIN ipcrnew i ON p.id = i.patent_id "
-//    def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
-    def joinCPC = "INNER JOIN cpcnew c ON p.id = c.patent_id "
+//    def joinInventor = "INNER JOIN patent_inventornew pi ON p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
+    def joinInventor = "INNER JOIN patent_inventor pi ON p.country = pi.country AND p.id = pi.patent_id INNER JOIN inventor ir ON pi.inventor_id = ir.id "
+//    def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
+//    def joinAssignee = "INNER JOIN patent_assigneenew pa ON p.id = pa.patent_id INNER JOIN assigneenew a ON pa.assignee_id = a.uuid "
+    def joinAssignee = "INNER JOIN patent_assignee pa ON p.country = pa.patent_country AND p.id = pa.patent_id INNER JOIN assignee a ON pa.assignee_id = a.id "
+//    def joinAssignee = "INNER JOIN assigneefinal a ON p.country = a.patent_country AND p.id = a.patent_id "
+    def joinUPC = "INNER JOIN uspc u ON p.country = u.patent_country AND p.id = u.patent_id "
+//    def joinUPC = "INNER JOIN uspcnew u ON p.id = u.patent_id "
+    def joinIPC = "INNER JOIN ipcr i ON p.country = i.patent_country AND p.id = i.patent_id "
+//    def joinIPC = "INNER JOIN ipcrnew i ON p.id = i.patent_id "
+    def joinCPC = "INNER JOIN cpc c ON p.country = c.patent_country AND p.id = c.patent_id "
+//    def joinCPC = "INNER JOIN cpcnew c ON p.id = c.patent_id "
     def joinApplication = "INNER JOIN application ap ON p.country = ap.patent_country AND p.id = ap.patent_id "
     def joinCitation = "INNER JOIN uspatentcitation ct ON p.country = ct.patent_country AND p.id = ct.patent_id "
 //    def joinLocation = "INNER JOIN location l ON p.country = l.patent_country AND p.id = l.patent_id "
@@ -37,7 +41,7 @@ class HomeController {
             "p.first_claim, "+
             "p.inventors, " +
             "p.assignees, " +
-            "p.upc, " + "p.ipc, " + "p.cpc, " +
+            "p.upcs, " + "p.ipcs, " + "p.cpcs, " +
             "p.citedby3, " + "p.cites " +
             "FROM patentfinal p "
     def countQuery = "SELECT count(distinct p.id) as 'total' " +
@@ -106,18 +110,18 @@ class HomeController {
 //                            println "empty = $empty"
 //                            println "inputQuery = $inputQuery.result.isEmpty()"
 //                            println "Interrupted Index ... " + inputQuery.interrupted
-                            if (!queryError && !empty && inputQuery.result.isEmpty()){
+                            if (active && !queryError && !empty && inputQuery.result.isEmpty()){
                                 runBackgroundTask = true
                             }
                             else if (queryError || empty) {
+                                inputQuery.isActive = false
+                                userInput.put(currentUser, inputQuery)
+                                active = false
+
                                 if (empty){
                                     flash.message = "result.empty.message"
                                 }
                                 else if (queryError) {
-                                    inputQuery.isActive = false
-                                    userInput.put(currentUser, inputQuery)
-                                    active = false
-
                                     if (inputQuery.interrupted) {
 //                                        println "Interrupted Index ..."
                                         flash.message = "sql.interrupt.message"
@@ -147,16 +151,20 @@ class HomeController {
                         }
                     }
                     if (runBackgroundTask){
+
                         flash.message = "query.running.message"
                         flash.args = ["Preparing result for download. Click STOP to run new query."]
-
-                        def a = task {
-                            try {
+                        if (!inputQuery.prepareDownload){
+                            inputQuery.prepareDownload = true
+                            userInput.put(currentUser, inputQuery)
+                            def a = task {
+                                try {
 //                                        println "Background task Started"
-                                backgroundTask(currentUser, inputQuery)
+                                    backgroundTask(currentUser, inputQuery)
 //                                        println "Background task Stopped"
-                            }catch (Exception e){
+                                }catch (Exception e){
 //                                println "Error: "
+                                }
                             }
                         }
                     }
@@ -483,6 +491,7 @@ class HomeController {
                 userQuery.result = results
                 userQuery.totalResultCount = results.size()
                 userQuery.isActive = false
+                userQuery.prepareDownload = false
                 userInput.put(user, userQuery)
 //                println " Task 2 stopped"
             }

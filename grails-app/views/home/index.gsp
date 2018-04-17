@@ -152,7 +152,7 @@
         }
         function validate(){
             $str = $('#input').val();
-            $patt = /^((([( \[])*[A-Z]+:)*(([ (\[])+([^~|(\[)\]^:\n\r])+([ )\]])+ *(AND |OR |NOT )*)+\)*)+$/;
+            $patt = /^((([( \[])*[A-Z]+:)*(([ (\[])+([^~|(\[)\]^:\n\r])+([ )\]])+ *(AND |OR |NOT )*)+\)*)+[\n]?$/;
             return $patt.test($str);
 		}
 
@@ -367,14 +367,14 @@
 						<td>${row.year}</td>
 						<td>${row.date}</td>
 						<td>
-							<span class="viewData">${row.assignee.length() > 20 ?  (row.assignee.indexOf('|') != -1 ? row.assignee.substring(0, row.assignee.indexOf('|')) : row.assignee.substring(0, 20)) : row.assignee}</span>
+							<span class="viewData">${row.assignee.length() > 20 ?  (row.assignee.indexOf(' ') != -1 ? row.assignee.substring(0, row.assignee.indexOf(' ')) : row.assignee.substring(0, 20)) : row.assignee}</span>
 							<span class="more"> more... </span>
-							<span class="expanding"> ${row.assignee.length() > 20 ? (row.assignee.indexOf('|') != -1 ? row.assignee.substring(row.assignee.indexOf('|'), row.assignee.length()) : row.assignee.substring(20, row.assignee.length())) : " "} </span>
+							<span class="expanding"> ${row.assignee.length() > 20 ? (row.assignee.indexOf(' ') != -1 ? row.assignee.substring(row.assignee.indexOf(' '), row.assignee.length()) : row.assignee.substring(20, row.assignee.length())) : " "} </span>
 						</td>
 						<td>
-							<span class="viewData">${row.inventor.length() > 20 ?  (row.inventor.indexOf('|') != -1 ? row.inventor.substring(0, row.inventor.indexOf('|')) : row.inventor.substring(0, 20)) : row.inventor}</span>
+							<span class="viewData">${row.inventor.length() > 20 ?  (row.inventor.indexOf(' ') != -1 ? row.inventor.substring(0, row.inventor.indexOf(' ')) : row.inventor.substring(0, 20)) : row.inventor}</span>
 							<span class="more"> more... </span>
-							<span class="expanding"> ${row.inventor.length() > 20 ? (row.inventor.indexOf('|') != -1 ? row.inventor.substring(row.inventor.indexOf('|'), row.inventor.length()) : row.inventor.substring(20, row.inventor.length())) : " "} </span>
+							<span class="expanding"> ${row.inventor.length() > 20 ? (row.inventor.indexOf(' ') != -1 ? row.inventor.substring(row.inventor.indexOf(' '), row.inventor.length()) : row.inventor.substring(20, row.inventor.length())) : " "} </span>
 						</td>
 						<td>
 							<span class="viewData">${row.ipc.length() > 20 ?  (row.ipc.indexOf(' ') != -1 ? row.ipc.substring(0, row.ipc.indexOf(' ')) : row.ipc.substring(0, 20)) : row.ipc}</span>
