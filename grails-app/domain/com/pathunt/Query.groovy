@@ -13,6 +13,7 @@ class Query {
     boolean error = false
     boolean interrupted = false
     boolean stopError = false
+    boolean prepareDownload = false
     ArrayList<Patent> result = new ArrayList<>()
     ArrayList<Patent> sample = new ArrayList<>()
 
@@ -28,6 +29,7 @@ class Query {
         interrupted = false
         stopError = false
         outOfMemory = false
+        prepareDownload = false
         result.clear()
         sample.clear()
     }
