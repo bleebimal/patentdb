@@ -346,15 +346,20 @@
 				<thead>
 				<tr>
 					<th>Publication Number</th>
-					<th>Year</th>
-					<th>Date</th>
+					<th>Application Year</th>
+					<th>Application Date</th>
+					<th>Publication Year</th>
+					<th>Publication Date</th>
 					<th>Assignee</th>
 					<th>Inventor</th>
 					<th>All_IPC(s)</th>
 					<th>All_UPC(s)</th>
 					<th>All_CPC(s)</th>
-					<th>Cited By</th>
-					<th>Cites</th>
+					<th>Cited By (3 Years)</th>
+					<th>Total Cited By</th>
+					%{--<th>Cited By</th>--}%
+					<th>Total Cites Count</th>
+					%{--<th>Cites</th>--}%
 					<th>Title</th>
 					<th>Abstract</th>
 					<th>First Claim</th>
@@ -364,6 +369,8 @@
 				<g:each in="${sample}" var="row" status="i">
 					<tr>
 						<td>${row.patent_number}</td>
+						<td>${row.appYear}</td>
+						<td>${row.appDate}</td>
 						<td>${row.year}</td>
 						<td>${row.date}</td>
 						<td>
@@ -386,13 +393,17 @@
 							<span class="more"> more... </span>
 							<span class="expanding"> ${row.upc.length() > 20 ? (row.upc.indexOf(' ') != -1 ? row.upc.substring(row.upc.indexOf(' '), row.upc.length()) : row.upc.substring(20, row.upc.length())) : " "} </span>
 						</td>
-						<td>
+						%{--<td>
 							<span class="viewData">${row.cpc.length() > 20 ?  (row.cpc.indexOf(' ') != -1 ? row.cpc.substring(0, row.cpc.indexOf(' ')) : row.cpc.substring(0, 20)) : row.cpc}</span>
 							<span class="more"> more... </span>
 							<span class="expanding"> ${row.cpc.length() > 20 ? (row.cpc.indexOf(' ') != -1 ? row.cpc.substring(row.cpc.indexOf(' '), row.cpc.length()) : row.cpc.substring(20, row.cpc.length())) : " "} </span>
-						</td>
+						</td>--}%
+						<td>${row.cpc}</td>
 						<td>${row.citedby3}</td>
-						<td>${row.cites}</td>
+						<td>${row.citedbyCount}</td>
+						%{--<td>${row.citedby}</td>--}%
+						<td>${row.citesCount}</td>
+						%{--<td>${row.cites}</td>--}%
 						<td>${row.title}</td>
 						<td>${row.abs}</td>
 						<td>${row.first_claim}</td>

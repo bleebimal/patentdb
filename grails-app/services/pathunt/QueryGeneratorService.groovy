@@ -99,7 +99,7 @@ class QueryGeneratorService {
         String queryField = fields[0]
         String valueField = fields[1]
 
-        valueField = valueField.replace("'","")
+        valueField = valueField.replace("'","").replace("\"","")
                 .replace("~","'%")
                 .replace("|","%'")
                 .replace("^"," ")
@@ -365,6 +365,7 @@ class QueryGeneratorService {
      * @param  dateField - prefix query
      * @return dateField -
      */
+    //TODO validate date
     def generateDate(String dateField){
         if (dateField.length() > 10){
 
