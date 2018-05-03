@@ -19,7 +19,7 @@ class HomeController {
     def exportService
     def grailsApplication
 //    def joinInventor = "INNER JOIN patent_inventornew pi ON p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
-    def joinInventor = "INNER JOIN patent_inventornew pi ON p.country = pi.country AND p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
+    def joinInventor = "INNER JOIN patent_inventornew pi ON p.country = pi.patent_country AND p.id = pi.patent_id INNER JOIN inventornew ir ON pi.inventor_id = ir.id "
 //    def joinInventor = "INNER JOIN inventorfinal ir ON p.country = ir.patent_country AND p.id = ir.patent_id "
 //    def joinAssignee = "INNER JOIN patent_assigneenew pa ON p.id = pa.patent_id INNER JOIN assigneenew a ON pa.assignee_id = a.uuid "
     def joinAssignee = "INNER JOIN patent_assigneenew pa ON p.country = pa.patent_country AND p.id = pa.patent_id INNER JOIN assigneenew a ON pa.assignee_id = a.id "
@@ -37,15 +37,18 @@ class HomeController {
     def getProcessIdQuery = "SELECT id FROM INFORMATION_SCHEMA.processlist where Info LIKE '%"
     def static userInput = new HashMap<String,Query>()
     def selectQuery = "SELECT distinct concat(p.country,p.id) as 'publication_number', " +
-            "p.title, p.abstract, year(p.date) as year, p.date, " +
+            "p.title, p.abstract, " +
+            "year(application_date) as application_year, " +
+            "application_date, " +
+            "year(p.date) as year, p.date, " +
             "p.first_claim, "+
             "p.inventors, " +
             "p.assignees, " +
             "p.upcs, " + "p.ipcs, " + "p.cpcs, " +
-            "p.citedby3, " + "p.cites " +
+            "p.citedby3, " +
+            "p.citedby, " +
+            "p.cites " +
             "FROM patentfinalnew p "
-    def countQuery = "SELECT count(distinct p.id) as 'total' " +
-            "FROM patentfinal p "
 
     def index() {
         if(springSecurityService.isLoggedIn()) {
@@ -185,10 +188,14 @@ class HomeController {
         response.contentType = grailsApplication.config.grails.mime.types[params.extension]
         response.setHeader("Content-disposition", "attachment; filename=output.${params.extension}")
 
-        List fields = ["patent_number", "title", "abs", "year", "date", "first_claim", "inventor", "assignee", "ipc", "upc", "cpc", "citedby3", "cites"]
+        List fields = ["patent_number", "title", "abs", "appYear", "appDate", "year", "date", "first_claim", "inventor",
+                       "assignee", "ipc", "upc", "cpc", "citedby3", "citedbyCount", "citedby", "citesCount", "cites"]
         Map labels = ["patent_number": "Publication Number", "title": "Title",
-                      "abs":"Abstract", "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim", "inventor":"Inventor(s)", "assignee":"Assignee(s)",
-                      "ipc":"IPC(s)", "upc":"UPC(s)", "cpc":"CPC(s)", "citedby3":"Cited By (3 Years)", "cites":"Cites"]
+                      "abs":"Abstract", "appYear":"Application Year", "appDate":"Application Date",
+                      "year":"Publication Year", "date":"Publication Date", "first_claim":"First Claim",
+                      "inventor":"Inventor(s)", "assignee":"Assignee(s)",
+                      "ipc":"IPC(s)", "upc":"UPC(s)", "cpc":"CPC(s)", "citedby3":"Cited By (3 Years)",
+                      "citedbyCount":"Total Cited By", "citedby":"Cited By", "citesCount":"Total Cites", "cites":"Cites"]
         def lists = inputQuery.result
         exportService.export(params?.extension, response.outputStream,lists, fields, labels, [:],[:])
     }
@@ -373,6 +380,8 @@ class HomeController {
                         patentdemo.patent_number = it.publication_number
                         patentdemo.title = it.title
                         patentdemo.abs = it.abstract
+                        patentdemo.appYear = it.application_year
+                        patentdemo.appDate = it.application_date
                         patentdemo.year = it.year
                         patentdemo.date = it.date
                         patentdemo.first_claim = it.first_claim
@@ -381,9 +390,23 @@ class HomeController {
                         patentdemo.ipc = it.ipcs
                         patentdemo.upc = it.upcs
                         patentdemo.cpc = it.cpcs
-                        patentdemo.citedby3 = it.citedby3
+                        patentdemo.citedby3 = it.citedby3 != " " ? Integer.parseInt(it.citedby3) : 0
+                        patentdemo.citedby = it.citedby
+                        def citedBy = patentdemo.citedby != null ? patentdemo.citedby.split("\\|") : [" "]
+                        if (citedBy[0] != " "){
+                            patentdemo.citedbyCount = citedBy.length
+                        }else {
+                            patentdemo.citedbyCount = 0
+                        }
+//                        patentdemo.citedbyCount = 0
                         patentdemo.cites = it.cites
-
+                        def cites =  patentdemo.cites != null ? patentdemo.cites.split("\\|") : [" "]
+                        if (cites[0] != " "){
+                            patentdemo.citesCount = cites.length
+                        }else {
+                            patentdemo.citesCount = 0
+                        }
+//                        patentdemo.citesCount = 0
                         samples.add(patentdemo)
                     }
                 }
@@ -455,17 +478,31 @@ class HomeController {
                             patentdemo.patent_number = it.publication_number
                             patentdemo.title = it.title
                             patentdemo.abs = it.abstract
+                            patentdemo.appYear = it.application_year
+                            patentdemo.appDate = it.application_date
                             patentdemo.year = it.year
                             patentdemo.date = it.date
                             patentdemo.first_claim = it.first_claim
                             patentdemo.assignee = it.assignees
                             patentdemo.inventor = it.inventors
-                            patentdemo.ipc = it.ipc
-                            patentdemo.upc = it.upc
-                            patentdemo.cpc = it.cpc
-                            patentdemo.citedby3 = it.citedby3
+                            patentdemo.ipc = it.ipcs
+                            patentdemo.upc = it.upcs
+                            patentdemo.cpc = it.cpcs
+                            patentdemo.citedby3 = it.citedby3 != " " ? Integer.parseInt(it.citedby3) : 0
+                            patentdemo.citedby = it.citedby
+                            def citedBy = patentdemo.citedby != null ? patentdemo.citedby.split("\\|") : [" "]
+                            if (citedBy[0] != " "){
+                                patentdemo.citedbyCount = citedBy.length
+                            }else {
+                                patentdemo.citedbyCount = 0
+                            }
                             patentdemo.cites = it.cites
-
+                            def cites = patentdemo.cites != null ? patentdemo.cites.split("\\|") : [" "]
+                            if (cites[0] != " "){
+                                patentdemo.citesCount = cites.length
+                            }else {
+                                patentdemo.citesCount = 0
+                            }
                             results.add(patentdemo)
                         }
                     }
@@ -484,6 +521,7 @@ class HomeController {
                         patentdemo.cpc = "Sample CPC"
                         patentdemo.citedby3 = "Sample cited By"
                         patentdemo.cites = "Sample Cites"
+
 
                         results.add(patentdemo)
                     }*/
@@ -506,8 +544,8 @@ class HomeController {
                     def whClause = userQuery.whereSQLQuery.replace("'","\\'") +
                             " -- " + user + "'"
                     def query = getProcessIdQuery + whClause
-                    def a1, a2
-                    a1 = new Date()
+//                    def a1, a2
+//                    a1 = new Date()
                     try {
 //                println "getProcessIdQuery = $query"
                         data = sql.rows(query)
@@ -515,9 +553,9 @@ class HomeController {
                         userQuery.error = true
                     }finally{
                         sql.close()
-                        a2 = new Date()
+//                        a2 = new Date()
 //                println "d2 = " + (d2)
-                        def duration = TimeCategory.minus( a2, a1 )
+//                        def duration = TimeCategory.minus( a2, a1 )
 //                        println "Time Duration query id = " + duration
                     }
                     if (!userQuery.error){
